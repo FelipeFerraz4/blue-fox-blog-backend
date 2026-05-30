@@ -65,7 +65,7 @@ public class Category {
             example = "2026-05-29T18:00:00Z",
             accessMode = Schema.AccessMode.READ_ONLY
     )
-    private OffsetDateTime createdAt = OffsetDateTime.now();
+    private OffsetDateTime createdAt;
 
     @Column(nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE", name = "updated_at")
     @UpdateTimestamp
@@ -74,5 +74,5 @@ public class Category {
             example = "2026-05-29T18:10:00Z",
             accessMode = Schema.AccessMode.READ_ONLY
     )
-    private OffsetDateTime updatedAt = OffsetDateTime.now();
+    private OffsetDateTime updatedAt;
 }
