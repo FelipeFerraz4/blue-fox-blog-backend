@@ -12,6 +12,8 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@ToString
+@EqualsAndHashCode(of = "id")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -53,7 +55,8 @@ public class Category {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @Schema( description = "Current category status", example = "ACTIVE" )
-    private Status status;
+    @Builder.Default
+    private Status status = Status.ACTIVE;
 
     @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE", name = "created_at")
     @CreationTimestamp
