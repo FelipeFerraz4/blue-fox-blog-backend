@@ -131,4 +131,118 @@ class RequestCategoryDTOTest {
 
         assertFalse(violations.isEmpty());
     }
+
+    @Test
+    void shouldFailWhenDescriptionIsBlank() {
+
+        RequestCategoryDTO dto = new RequestCategoryDTO(
+                "Fish Care",
+                "",
+                "fish-care"
+        );
+
+        Set<ConstraintViolation<RequestCategoryDTO>> violations =
+                validator.validate(dto);
+
+        assertFalse(violations.isEmpty());
+
+        assertTrue(
+                violations.stream()
+                        .anyMatch(v ->
+                                v.getMessage().equals(
+                                        "Category description cannot be null or empty"
+                                ))
+        );
+    }
+
+    @Test
+    void shouldFailWhenNameIsTooShort() {
+
+        RequestCategoryDTO dto = new RequestCategoryDTO(
+                "AB",
+                "Description",
+                "fish-care"
+        );
+
+        Set<ConstraintViolation<RequestCategoryDTO>> violations =
+                validator.validate(dto);
+
+        assertFalse(violations.isEmpty());
+
+        assertTrue(
+                violations.stream()
+                        .anyMatch(v ->
+                                v.getMessage().contains(
+                                        "Category name must be between 3 and 255 characters"
+                                ))
+        );
+    }
+
+    @Test
+    void shouldFailWhenSlugIsTooShort() {
+
+        RequestCategoryDTO dto = new RequestCategoryDTO(
+                "Fish Care",
+                "Description",
+                "ab"
+        );
+
+        Set<ConstraintViolation<RequestCategoryDTO>> violations =
+                validator.validate(dto);
+
+        assertFalse(violations.isEmpty());
+
+        assertTrue(
+                violations.stream()
+                        .anyMatch(v ->
+                                v.getMessage().contains(
+                                        "Category slug must be between 3 and 255 characters"
+                                ))
+        );
+    }
+
+    @Test
+    void shouldFailWhenNameIsNull() {
+
+        RequestCategoryDTO dto = new RequestCategoryDTO(
+                null,
+                "Description",
+                "fish-care"
+        );
+
+        Set<ConstraintViolation<RequestCategoryDTO>> violations =
+                validator.validate(dto);
+
+        assertFalse(violations.isEmpty());
+    }
+
+    @Test
+    void shouldFailWhenSlugIsNull() {
+
+        RequestCategoryDTO dto = new RequestCategoryDTO(
+                "Fish Care",
+                "Description",
+                null
+        );
+
+        Set<ConstraintViolation<RequestCategoryDTO>> violations =
+                validator.validate(dto);
+
+        assertFalse(violations.isEmpty());
+    }
+
+    @Test
+    void shouldFailWhenDescriptionIsNull() {
+
+        RequestCategoryDTO dto = new RequestCategoryDTO(
+                "Fish Care",
+                null,
+                "fish-care"
+        );
+
+        Set<ConstraintViolation<RequestCategoryDTO>> violations =
+                validator.validate(dto);
+
+        assertFalse(violations.isEmpty());
+    }
 }
