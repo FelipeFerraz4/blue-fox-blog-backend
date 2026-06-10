@@ -198,4 +198,84 @@ class ResultCategoryDTOTest {
 
         assertFalse(violations.isEmpty());
     }
+
+    @Test
+    void shouldFailWhenDescriptionIsNull() {
+
+        ResultCategoryDTO dto = new ResultCategoryDTO(
+                UUID.randomUUID(),
+                "Fish Care",
+                null,
+                "fish-care"
+        );
+
+        Set<ConstraintViolation<ResultCategoryDTO>> violations =
+                validator.validate(dto);
+
+        assertFalse(violations.isEmpty());
+
+        assertTrue(
+                violations.stream()
+                        .anyMatch(v ->
+                                v.getMessage().contains(
+                                        "Category description cannot be null or empty"
+                                ))
+        );
+    }
+
+    @Test
+    void shouldFailWhenNameIsNull() {
+
+        ResultCategoryDTO dto = new ResultCategoryDTO(
+                UUID.randomUUID(),
+                null,
+                "Category about fish care",
+                "fish-care"
+        );
+
+        Set<ConstraintViolation<ResultCategoryDTO>> violations =
+                validator.validate(dto);
+
+        assertFalse(violations.isEmpty());
+    }
+
+    @Test
+    void shouldFailWhenSlugIsNull() {
+
+        ResultCategoryDTO dto = new ResultCategoryDTO(
+                UUID.randomUUID(),
+                "Fish Care",
+                "Category about fish care",
+                null
+        );
+
+        Set<ConstraintViolation<ResultCategoryDTO>> violations =
+                validator.validate(dto);
+
+        assertFalse(violations.isEmpty());
+    }
+
+    @Test
+    void shouldFailWhenSlugIsTooShort() {
+
+        ResultCategoryDTO dto = new ResultCategoryDTO(
+                UUID.randomUUID(),
+                "Fish Care",
+                "Category about fish care",
+                "ab"
+        );
+
+        Set<ConstraintViolation<ResultCategoryDTO>> violations =
+                validator.validate(dto);
+
+        assertFalse(violations.isEmpty());
+
+        assertTrue(
+                violations.stream()
+                        .anyMatch(v ->
+                                v.getMessage().contains(
+                                        "Category slug must be between 3 and 255 characters"
+                                ))
+        );
+    }
 }
