@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase.Replace;
+import org.springframework.boot.test.context.SpringBootTest;
 import space.bluefoxaquarismo.Backend.config.AbstractIntegrationTest;
 import space.bluefoxaquarismo.Backend.entity.Category;
 import space.bluefoxaquarismo.Backend.entity.Status;
@@ -14,7 +15,6 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@AutoConfigureTestDatabase(replace = Replace.NONE)
 class CategoryRepositoryTest extends AbstractIntegrationTest {
 
     @Autowired
