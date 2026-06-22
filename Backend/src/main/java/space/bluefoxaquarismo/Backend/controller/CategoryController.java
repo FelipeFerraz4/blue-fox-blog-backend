@@ -15,7 +15,7 @@ import space.bluefoxaquarismo.Backend.documentation.DefaultApiResponses;
 import space.bluefoxaquarismo.Backend.documentation.DefaultReadApiResponses;
 import space.bluefoxaquarismo.Backend.dto.category.RequestCategoryDTO;
 import space.bluefoxaquarismo.Backend.dto.category.ResultCategoryDTO;
-import space.bluefoxaquarismo.Backend.dto.category.UpdateCategoryStatusDTO;
+import space.bluefoxaquarismo.Backend.dto.category.UpdateStatusDTO;
 import space.bluefoxaquarismo.Backend.dto.error.ErrorResponseDTO;
 import space.bluefoxaquarismo.Backend.entity.Status;
 import space.bluefoxaquarismo.Backend.service.CategoryService;
@@ -151,7 +151,7 @@ public class CategoryController {
     })
     public ResultCategoryDTO updateStatus(
             @PathVariable @Parameter(description = "Category id") UUID id,
-            @Valid @RequestBody UpdateCategoryStatusDTO dto
+            @Valid @RequestBody UpdateStatusDTO dto
     ){
         return categoryService.updateStatus(id, dto.status());
     }

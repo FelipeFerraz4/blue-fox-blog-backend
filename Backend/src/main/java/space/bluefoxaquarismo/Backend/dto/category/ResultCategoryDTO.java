@@ -5,7 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import space.bluefoxaquarismo.Backend.entity.Status;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Schema(description = "Category response object")
@@ -43,6 +45,27 @@ public record ResultCategoryDTO(
                 regexp = "^[a-z0-9]+(?:-[a-z0-9]+)*$",
                 message = "Category slug must contain only lowercase letters, numbers and single hyphens between words"
         )
-        String slug
+        String slug,
+
+
+        @Schema(
+                description = "Current category status",
+                example = "ACTIVE"
+        )
+        Status status,
+
+        @Schema(
+                description = "Date and time the category was created",
+                example = "2026-05-29T18:00:00Z",
+                accessMode = Schema.AccessMode.READ_ONLY
+        )
+        OffsetDateTime createdAt,
+
+        @Schema(
+                description = "Date and time the category profile was last updated",
+                example = "2026-06-12T17:15:00Z",
+                accessMode = Schema.AccessMode.READ_ONLY
+        )
+        OffsetDateTime updatedAt
 
 ) {}

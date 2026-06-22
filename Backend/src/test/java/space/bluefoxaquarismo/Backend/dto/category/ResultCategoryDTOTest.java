@@ -6,7 +6,9 @@ import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import space.bluefoxaquarismo.Backend.entity.Status;
 
+import java.time.OffsetDateTime;
 import java.util.Set;
 import java.util.UUID;
 
@@ -16,6 +18,8 @@ class ResultCategoryDTOTest {
 
     private Validator validator;
 
+    private final OffsetDateTime now = OffsetDateTime.now();
+
     @BeforeEach
     void setUp() {
         ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
@@ -24,11 +28,17 @@ class ResultCategoryDTOTest {
 
     @Test
     void shouldValidateSuccessfully() {
+
+
+
         ResultCategoryDTO dto = new ResultCategoryDTO(
                 UUID.randomUUID(),
                 "Fish Care",
                 "Category about fish care",
-                "fish-care"
+                "fish-care",
+                Status.ACTIVE,
+                now,
+                now
         );
 
         Set<ConstraintViolation<ResultCategoryDTO>> violations =
@@ -44,7 +54,10 @@ class ResultCategoryDTOTest {
                 null,
                 "Fish Care",
                 "Category about fish care",
-                "fish-care"
+                "fish-care",
+                Status.ACTIVE,
+                now,
+                now
         );
 
         Set<ConstraintViolation<ResultCategoryDTO>> violations =
@@ -66,7 +79,10 @@ class ResultCategoryDTOTest {
                 UUID.randomUUID(),
                 "",
                 "Category about fish care",
-                "fish-care"
+                "fish-care",
+                Status.ACTIVE,
+                now,
+                now
         );
 
         Set<ConstraintViolation<ResultCategoryDTO>> violations =
@@ -82,7 +98,10 @@ class ResultCategoryDTOTest {
                 UUID.randomUUID(),
                 "AB",
                 "Category about fish care",
-                "fish-care"
+                "fish-care",
+                Status.ACTIVE,
+                now,
+                now
         );
 
         Set<ConstraintViolation<ResultCategoryDTO>> violations =
@@ -104,7 +123,10 @@ class ResultCategoryDTOTest {
                 UUID.randomUUID(),
                 "Fish Care",
                 "",
-                "fish-care"
+                "fish-care",
+                Status.ACTIVE,
+                now,
+                now
         );
 
         Set<ConstraintViolation<ResultCategoryDTO>> violations =
@@ -120,7 +142,10 @@ class ResultCategoryDTOTest {
                 UUID.randomUUID(),
                 "Fish Care",
                 "Category about fish care",
-                "fish care"
+                "fish care",
+                Status.ACTIVE,
+                now,
+                now
         );
 
         Set<ConstraintViolation<ResultCategoryDTO>> violations =
@@ -142,7 +167,10 @@ class ResultCategoryDTOTest {
                 UUID.randomUUID(),
                 "Fish Care",
                 "Category about fish care",
-                "Fish-Care"
+                "Fish-Care",
+                Status.ACTIVE,
+                now,
+                now
         );
 
         Set<ConstraintViolation<ResultCategoryDTO>> violations =
@@ -158,7 +186,10 @@ class ResultCategoryDTOTest {
                 UUID.randomUUID(),
                 "Fish Care",
                 "Category about fish care",
-                "-fish-care"
+                "-fish-care",
+                Status.ACTIVE,
+                now,
+                now
         );
 
         Set<ConstraintViolation<ResultCategoryDTO>> violations =
@@ -174,7 +205,10 @@ class ResultCategoryDTOTest {
                 UUID.randomUUID(),
                 "Fish Care",
                 "Category about fish care",
-                "fish-care-"
+                "fish-care-",
+                Status.ACTIVE,
+                now,
+                now
         );
 
         Set<ConstraintViolation<ResultCategoryDTO>> violations =
@@ -190,7 +224,10 @@ class ResultCategoryDTOTest {
                 UUID.randomUUID(),
                 "Fish Care",
                 "Category about fish care",
-                "fish--care"
+                "fish--care",
+                Status.ACTIVE,
+                now,
+                now
         );
 
         Set<ConstraintViolation<ResultCategoryDTO>> violations =
@@ -206,7 +243,10 @@ class ResultCategoryDTOTest {
                 UUID.randomUUID(),
                 "Fish Care",
                 null,
-                "fish-care"
+                "fish-care",
+                Status.ACTIVE,
+                now,
+                now
         );
 
         Set<ConstraintViolation<ResultCategoryDTO>> violations =
@@ -230,7 +270,10 @@ class ResultCategoryDTOTest {
                 UUID.randomUUID(),
                 null,
                 "Category about fish care",
-                "fish-care"
+                "fish-care",
+                Status.ACTIVE,
+                now,
+                now
         );
 
         Set<ConstraintViolation<ResultCategoryDTO>> violations =
@@ -246,7 +289,10 @@ class ResultCategoryDTOTest {
                 UUID.randomUUID(),
                 "Fish Care",
                 "Category about fish care",
-                null
+                null,
+                Status.ACTIVE,
+                now,
+                now
         );
 
         Set<ConstraintViolation<ResultCategoryDTO>> violations =
@@ -262,7 +308,10 @@ class ResultCategoryDTOTest {
                 UUID.randomUUID(),
                 "Fish Care",
                 "Category about fish care",
-                "ab"
+                "ab",
+                Status.ACTIVE,
+                now,
+                now
         );
 
         Set<ConstraintViolation<ResultCategoryDTO>> violations =

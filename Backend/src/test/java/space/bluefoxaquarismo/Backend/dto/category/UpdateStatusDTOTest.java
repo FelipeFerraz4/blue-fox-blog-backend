@@ -6,14 +6,14 @@ import space.bluefoxaquarismo.Backend.entity.Status;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class UpdateCategoryStatusDTOTest {
+class UpdateStatusDTOTest {
 
     @Test
     @DisplayName("Should create update category status dto")
     void shouldCreateUpdateCategoryStatusDTO() {
 
-        UpdateCategoryStatusDTO dto =
-                new UpdateCategoryStatusDTO(Status.ACTIVE);
+        UpdateStatusDTO dto =
+                new UpdateStatusDTO(Status.ACTIVE);
 
         assertEquals(
                 Status.ACTIVE,
