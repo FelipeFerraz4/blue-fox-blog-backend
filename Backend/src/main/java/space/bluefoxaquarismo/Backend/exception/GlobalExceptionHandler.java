@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import space.bluefoxaquarismo.Backend.dto.error.ErrorResponseDTO;
+import space.bluefoxaquarismo.Backend.exception.category.CategoryAlreadyExistsException;
+import space.bluefoxaquarismo.Backend.exception.category.CategoryNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;

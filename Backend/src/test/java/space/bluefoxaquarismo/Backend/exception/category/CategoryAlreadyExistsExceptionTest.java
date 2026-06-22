@@ -1,7 +1,6 @@
-package space.bluefoxaquarismo.Backend.exception;
+package space.bluefoxaquarismo.Backend.exception.category;
 
 import org.junit.jupiter.api.Test;
-import space.bluefoxaquarismo.Backend.exception.category.CategoryAlreadyExistsException;
 
 import java.util.UUID;
 

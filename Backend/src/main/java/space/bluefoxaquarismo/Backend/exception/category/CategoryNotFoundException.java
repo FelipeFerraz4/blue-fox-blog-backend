@@ -1,4 +1,4 @@
-package space.bluefoxaquarismo.Backend.exception;
+package space.bluefoxaquarismo.Backend.exception.category;
 
 import java.util.UUID;
 

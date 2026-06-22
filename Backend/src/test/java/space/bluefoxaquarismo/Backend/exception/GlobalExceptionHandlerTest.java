@@ -11,6 +11,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import space.bluefoxaquarismo.Backend.dto.error.ErrorResponseDTO;
+import space.bluefoxaquarismo.Backend.exception.category.CategoryAlreadyExistsException;
+import space.bluefoxaquarismo.Backend.exception.category.CategoryNotFoundException;
 
 import java.util.List;
 
