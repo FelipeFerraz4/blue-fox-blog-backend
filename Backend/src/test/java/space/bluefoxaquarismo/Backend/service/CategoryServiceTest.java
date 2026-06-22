@@ -10,11 +10,12 @@ import space.bluefoxaquarismo.Backend.dto.category.RequestCategoryDTO;
 import space.bluefoxaquarismo.Backend.dto.category.ResultCategoryDTO;
 import space.bluefoxaquarismo.Backend.entity.Category;
 import space.bluefoxaquarismo.Backend.entity.Status;
-import space.bluefoxaquarismo.Backend.exception.CategoryAlreadyExistsException;
-import space.bluefoxaquarismo.Backend.exception.CategoryNotFoundException;
+import space.bluefoxaquarismo.Backend.exception.category.CategoryAlreadyExistsException;
+import space.bluefoxaquarismo.Backend.exception.category.CategoryNotFoundException;
 import space.bluefoxaquarismo.Backend.mapper.CategoryMapper;
 import space.bluefoxaquarismo.Backend.repository.CategoryRepository;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -58,11 +59,16 @@ class CategoryServiceTest {
                 "fish-care"
         );
 
+        OffsetDateTime now =  OffsetDateTime.now();
+
         responseDTO = new ResultCategoryDTO(
                 categoryId,
                 "Fish Care",
                 "Fish care category",
-                "fish-care"
+                "fish-care",
+                Status.ACTIVE,
+                now,
+                now
         );
     }
 

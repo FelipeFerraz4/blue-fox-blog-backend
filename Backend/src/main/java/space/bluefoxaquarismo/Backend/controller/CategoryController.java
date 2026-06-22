@@ -15,7 +15,7 @@ import space.bluefoxaquarismo.Backend.documentation.DefaultApiResponses;
 import space.bluefoxaquarismo.Backend.documentation.DefaultReadApiResponses;
 import space.bluefoxaquarismo.Backend.dto.category.RequestCategoryDTO;
 import space.bluefoxaquarismo.Backend.dto.category.ResultCategoryDTO;
-import space.bluefoxaquarismo.Backend.dto.category.UpdateStatusDTO;
+import space.bluefoxaquarismo.Backend.dto.UpdateStatusDTO;
 import space.bluefoxaquarismo.Backend.dto.error.ErrorResponseDTO;
 import space.bluefoxaquarismo.Backend.entity.Status;
 import space.bluefoxaquarismo.Backend.service.CategoryService;

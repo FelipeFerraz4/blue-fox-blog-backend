@@ -7,8 +7,8 @@ import space.bluefoxaquarismo.Backend.dto.category.RequestCategoryDTO;
 import space.bluefoxaquarismo.Backend.dto.category.ResultCategoryDTO;
 import space.bluefoxaquarismo.Backend.entity.Category;
 import space.bluefoxaquarismo.Backend.entity.Status;
-import space.bluefoxaquarismo.Backend.exception.CategoryAlreadyExistsException;
-import space.bluefoxaquarismo.Backend.exception.CategoryNotFoundException;
+import space.bluefoxaquarismo.Backend.exception.category.CategoryAlreadyExistsException;
+import space.bluefoxaquarismo.Backend.exception.category.CategoryNotFoundException;
 import space.bluefoxaquarismo.Backend.mapper.CategoryMapper;
 import space.bluefoxaquarismo.Backend.repository.CategoryRepository;
 

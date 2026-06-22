@@ -9,12 +9,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import space.bluefoxaquarismo.Backend.dto.category.RequestCategoryDTO;
 import space.bluefoxaquarismo.Backend.dto.category.ResultCategoryDTO;
-import space.bluefoxaquarismo.Backend.dto.category.UpdateCategoryStatusDTO;
+import space.bluefoxaquarismo.Backend.dto.UpdateStatusDTO;
 import space.bluefoxaquarismo.Backend.entity.Status;
 import space.bluefoxaquarismo.Backend.service.CategoryService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -42,11 +43,16 @@ public class CategoryControllerTest {
                 "fish"
         );
 
+        OffsetDateTime now = OffsetDateTime.now();
+
         responseDTO = new ResultCategoryDTO(
                 id,
                 "Fish",
                 "Fish category",
-                "fish"
+                "fish",
+                Status.ACTIVE,
+                now,
+                now
         );
     }
 
@@ -192,8 +198,8 @@ public class CategoryControllerTest {
     @DisplayName("Should update category status")
     void shouldUpdateCategoryStatus() {
 
-        UpdateCategoryStatusDTO dto =
-                new UpdateCategoryStatusDTO(
+        UpdateStatusDTO dto =
+                new UpdateStatusDTO(
                         Status.ACTIVE
                 );
 
