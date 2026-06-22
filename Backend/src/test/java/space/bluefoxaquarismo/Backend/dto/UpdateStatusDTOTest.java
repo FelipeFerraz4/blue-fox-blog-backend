@@ -1,4 +1,4 @@
-package space.bluefoxaquarismo.Backend.dto.category;
+package space.bluefoxaquarismo.Backend.dto;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

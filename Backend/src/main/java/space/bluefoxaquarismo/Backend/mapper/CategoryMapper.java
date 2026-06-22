@@ -1,27 +1,22 @@
 package space.bluefoxaquarismo.Backend.mapper;
 
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
 import space.bluefoxaquarismo.Backend.dto.category.RequestCategoryDTO;
 import space.bluefoxaquarismo.Backend.dto.category.ResultCategoryDTO;
 import space.bluefoxaquarismo.Backend.entity.Category;
 
-@Component
-public class CategoryMapper {
+@Mapper(componentModel = "spring")
+public interface CategoryMapper {
 
-    public Category toEntity(RequestCategoryDTO dto){
-        return Category.builder()
-                .name(dto.name())
-                .description(dto.description())
-                .slug(dto.slug())
-                .build();
-    }
+    /**
+     * Mapeia o DTO de requisição para a entidade Category.
+     * O MapStruct usará automaticamente o Builder do Lombok da sua entidade.
+     */
+    Category toEntity(RequestCategoryDTO dto);
 
-    public ResultCategoryDTO toResponseDTO(Category entity){
-        return new ResultCategoryDTO(
-                entity.getId(),
-                entity.getName(),
-                entity.getDescription(),
-                entity.getSlug()
-        );
-    }
+    /**
+     * Mapeia a entidade Category para o DTO de resposta.
+     * O MapStruct passará os valores para o construtor do seu Record.
+     */
+    ResultCategoryDTO toResponseDTO(Category entity);
 }

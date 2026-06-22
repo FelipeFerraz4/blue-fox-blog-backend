@@ -1,26 +1,24 @@
 package space.bluefoxaquarismo.Backend.mapper;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 import space.bluefoxaquarismo.Backend.dto.category.RequestCategoryDTO;
 import space.bluefoxaquarismo.Backend.dto.category.ResultCategoryDTO;
 import space.bluefoxaquarismo.Backend.entity.Category;
+import space.bluefoxaquarismo.Backend.entity.Status;
 
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class CategoryMapperTest {
 
-    private CategoryMapper categoryMapper;
-
-    @BeforeEach
-    void setUp() {
-        categoryMapper = new CategoryMapper();
-    }
+    private final CategoryMapper mapper =
+            Mappers.getMapper(CategoryMapper.class);
 
     @Test
-    void shouldConvertRequestCategoryDTOToEntity() {
+    void shouldMapRequestCategoryDTOToEntity() {
 
         RequestCategoryDTO dto = new RequestCategoryDTO(
                 "Fish Care",
@@ -28,72 +26,57 @@ class CategoryMapperTest {
                 "fish-care"
         );
 
-        Category entity = categoryMapper.toEntity(dto);
+        Category entity = mapper.toEntity(dto);
 
         assertNotNull(entity);
-
         assertEquals(dto.name(), entity.getName());
         assertEquals(dto.description(), entity.getDescription());
         assertEquals(dto.slug(), entity.getSlug());
     }
 
     @Test
-    void shouldConvertCategoryEntityToResponseDTO() {
+    void shouldMapCategoryToResponseDTO() {
 
         UUID id = UUID.randomUUID();
+        OffsetDateTime createdAt = OffsetDateTime.now();
+        OffsetDateTime updatedAt = OffsetDateTime.now();
 
-        Category entity = Category.builder()
-                .id(id)
-                .name("Fish Care")
-                .description("Category about fish care")
-                .slug("fish-care")
-                .build();
+        Category category = new Category();
 
-        ResultCategoryDTO dto = categoryMapper.toResponseDTO(entity);
+        category.setId(id);
+        category.setName("Fish Care");
+        category.setDescription("Category about fish care");
+        category.setSlug("fish-care");
+        category.setStatus(Status.ACTIVE);
+        category.setCreatedAt(createdAt);
+        category.setUpdatedAt(updatedAt);
 
-        assertNotNull(dto);
-
-        assertEquals(entity.getId(), dto.id());
-        assertEquals(entity.getName(), dto.name());
-        assertEquals(entity.getDescription(), dto.description());
-        assertEquals(entity.getSlug(), dto.slug());
-    }
-
-    @Test
-    void shouldReturnEntityWithNullFieldsWhenDtoFieldsAreNull() {
-
-        RequestCategoryDTO dto = new RequestCategoryDTO(
-                null,
-                null,
-                null
-        );
-
-        Category entity = categoryMapper.toEntity(dto);
-
-        assertNotNull(entity);
-
-        assertNull(entity.getName());
-        assertNull(entity.getDescription());
-        assertNull(entity.getSlug());
-    }
-
-    @Test
-    void shouldReturnResponseDTOWithNullFieldsWhenEntityFieldsAreNull() {
-
-        Category entity = Category.builder()
-                .id(null)
-                .name(null)
-                .description(null)
-                .slug(null)
-                .build();
-
-        ResultCategoryDTO dto = categoryMapper.toResponseDTO(entity);
+        ResultCategoryDTO dto = mapper.toResponseDTO(category);
 
         assertNotNull(dto);
 
-        assertNull(dto.id());
-        assertNull(dto.name());
-        assertNull(dto.description());
-        assertNull(dto.slug());
+        assertEquals(category.getId(), dto.id());
+        assertEquals(category.getName(), dto.name());
+        assertEquals(category.getDescription(), dto.description());
+        assertEquals(category.getSlug(), dto.slug());
+        assertEquals(category.getStatus(), dto.status());
+        assertEquals(category.getCreatedAt(), dto.createdAt());
+        assertEquals(category.getUpdatedAt(), dto.updatedAt());
+    }
+
+    @Test
+    void shouldReturnNullWhenEntityIsNull() {
+
+        ResultCategoryDTO dto = mapper.toResponseDTO(null);
+
+        assertNull(dto);
+    }
+
+    @Test
+    void shouldReturnNullWhenDtoIsNull() {
+
+        Category entity = mapper.toEntity(null);
+
+        assertNull(entity);
     }
 }
