@@ -1,6 +1,7 @@
 package space.bluefoxaquarismo.Backend.exception;
 
 import org.junit.jupiter.api.Test;
+import space.bluefoxaquarismo.Backend.exception.category.CategoryNotFoundException;
 
 import java.util.UUID;
 
