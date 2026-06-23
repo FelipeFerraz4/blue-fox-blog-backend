@@ -1,9 +1,9 @@
 package space.bluefoxaquarismo.Backend.repository;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import space.bluefoxaquarismo.Backend.config.AbstractIntegrationTest;
 import space.bluefoxaquarismo.Backend.entity.Author;
 import space.bluefoxaquarismo.Backend.entity.Status;
@@ -17,6 +17,11 @@ class AuthorRepositoryTest extends AbstractIntegrationTest {
 
     @Autowired
     private AuthorRepository authorRepository;
+
+    @BeforeEach
+    void setUp() {
+        authorRepository.deleteAll();
+    }
 
     @Test
     @DisplayName("Should find author by name")

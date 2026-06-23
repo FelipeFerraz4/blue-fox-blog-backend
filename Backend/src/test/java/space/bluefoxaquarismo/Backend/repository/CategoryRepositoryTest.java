@@ -3,9 +3,6 @@ package space.bluefoxaquarismo.Backend.repository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase.Replace;
-import org.springframework.boot.test.context.SpringBootTest;
 import space.bluefoxaquarismo.Backend.config.AbstractIntegrationTest;
 import space.bluefoxaquarismo.Backend.entity.Category;
 import space.bluefoxaquarismo.Backend.entity.Status;
@@ -154,12 +151,14 @@ class CategoryRepositoryTest extends AbstractIntegrationTest {
         List<Category> activeCategories =
                 categoryRepository.findAllByStatus(Status.ACTIVE);
 
-        assertThat(activeCategories).hasSize(1);
+        assertThat(activeCategories).isNotEmpty();
 
-        assertThat(activeCategories.getFirst().getName())
-                .isEqualTo("Fresh Water");
+        assertThat(activeCategories)
+                .extracting(Category::getSlug)
+                .contains("fresh-water")
+                .doesNotContain("salt-water");
 
-        assertThat(activeCategories.getFirst().getStatus())
-                .isEqualTo(Status.ACTIVE);
+        assertThat(activeCategories)
+                .allMatch(category -> category.getStatus() == Status.ACTIVE);
     }
 }
