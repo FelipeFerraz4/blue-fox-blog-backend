@@ -5,8 +5,6 @@ import space.bluefoxaquarismo.Backend.dto.author.RequestAuthorDTO;
 import space.bluefoxaquarismo.Backend.dto.author.ResultAuthorDTO;
 import space.bluefoxaquarismo.Backend.entity.Author;
 
-
-
 @Mapper(componentModel = "spring")
 public interface AuthorMapper {
     /**
@@ -15,7 +13,7 @@ public interface AuthorMapper {
     Author toEntity(RequestAuthorDTO dto);
 
     /**
-     * Mapeia a entidade Category para o DTO de resposta.
+     * Mapeia a entidade Author para o DTO de resposta.
      */
     ResultAuthorDTO toResponseDTO(Author entity);
 }
