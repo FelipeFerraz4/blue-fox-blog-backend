@@ -1,0 +1,112 @@
+```gitignore
+# ===========================
+# Build
+# ===========================
+target/
+build/
+out/
+
+# Maven
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle/
+
+# Logs
+logs/
+*.log
+hs_err_pid*
+replay_pid*
+
+# Spring Boot
+*.pid
+*.seed
+*.pid.lock
+
+# ===========================
+# IDEs
+# ===========================
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Eclipse
+.project
+.classpath
+.settings/
+.factorypath
+
+# VS Code
+.vscode/
+
+# NetBeans
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+
+# ===========================
+# OS
+# ===========================
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+
+# Linux
+*~
+
+# ===========================
+# Environment
+# ===========================
+
+.env
+.env.*
+!.env.example
+!.env.dev.example
+!.env.prod.example
+
+# ===========================
+# Temporary files
+# ===========================
+
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# ===========================
+# Test Reports
+# ===========================
+
+coverage/
+jacoco.exec
+jacoco/
+site/
+
+# ===========================
+# Dependency directories
+# ===========================
+
+node_modules/
+
+# ===========================
+# Archives
+# ===========================
+
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+
+# ===========================
+# Generated files
+# ===========================
+
+generated/
+```
