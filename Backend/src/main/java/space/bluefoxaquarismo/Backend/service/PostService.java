@@ -87,7 +87,7 @@ public class PostService {
      * @return List of posts
      */
     public List<ResultPostDTO> findAll() {
-        List<Post> posts = postRepository.findAll();
+        List<Post> posts = postRepository.findAllWithRelations();
         return posts.stream().map(postMapper::toResponseDTO).toList();
     }
 
@@ -218,7 +218,7 @@ public class PostService {
      * @return Post entity
      */
     private Post findPostEntityById(UUID id) {
-        return postRepository.findById(id)
+        return postRepository.findPostWithRelationsById(id)
                 .orElseThrow(() -> new PostNotFoundException(id));
     }
 

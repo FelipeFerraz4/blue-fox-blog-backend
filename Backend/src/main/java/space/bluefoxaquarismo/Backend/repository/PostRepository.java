@@ -1,6 +1,8 @@
 package space.bluefoxaquarismo.Backend.repository;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import space.bluefoxaquarismo.Backend.entity.Post;
 import space.bluefoxaquarismo.Backend.entity.Status;
@@ -21,11 +23,30 @@ import java.util.UUID;
 public interface PostRepository extends JpaRepository<Post, UUID> {
 
     /**
+     * Finds a post by id with relation.
+     *
+     * @param id The unique id of the post to find.
+     * @return An {@link Optional} containing the found post with relation, or an empty {@link Optional} if not found.
+     */
+    @EntityGraph(attributePaths = {"category", "author"})
+    @Query("select p from Post p where p.id = :id")
+    Optional<Post> findPostWithRelationsById(UUID id);
+
+    /**
+     *  Find all the post with relation.
+     *
+     * @return A {@link List} of posts with relation.
+     */
+    @EntityGraph(attributePaths = {"category", "author"})
+    @Query("select p from Post p")
+    List<Post> findAllWithRelations();
+    /**
      * Finds a post by its unique, SEO-friendly slug.
      *
      * @param slug The unique slug of the post to find.
      * @return An {@link Optional} containing the found post, or an empty {@link Optional} if not found.
      */
+    @EntityGraph(attributePaths = {"category", "author"})
     Optional<Post> findBySlug(String slug);
 
     /**
@@ -42,6 +63,7 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
      * @param status The status of the posts to find.
      * @return A {@link List} of posts with the given status.
      */
+    @EntityGraph(attributePaths = {"category", "author"})
     List<Post> findAllByStatus(Status status);
 
     /**
@@ -52,6 +74,7 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
      * @param status    The current lifecycle status of the post.
      * @return A {@link List} of posts matching both criteria.
      */
+    @EntityGraph(attributePaths = {"category", "author"})
     List<Post> findAllByPublishedAndStatus(boolean published, Status status);
 
     /**
@@ -60,6 +83,7 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
      * @param authorId The unique identifier of the author.
      * @return A {@link List} of posts written by the specified author.
      */
+    @EntityGraph(attributePaths = {"category", "author"})
     List<Post> findAllByAuthorId(UUID authorId);
 
     /**
@@ -68,6 +92,7 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
      * @param categoryId The unique identifier of the category.
      * @return A {@link List} of posts associated with the specified category.
      */
+    @EntityGraph(attributePaths = {"category", "author"})
     List<Post> findAllByCategoryId(UUID categoryId);
 
     /**
@@ -79,5 +104,6 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
      * @param status     The current lifecycle status of the post.
      * @return A {@link List} of visible posts in that category.
      */
+    @EntityGraph(attributePaths = {"category", "author"})
     List<Post> findAllByCategoryIdAndPublishedAndStatus(UUID categoryId, boolean published, Status status);
 }

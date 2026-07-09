@@ -12,7 +12,7 @@ RUN ./mvnw -B dependency:go-offline
 
 COPY src ./src
 
-RUN ./mvnw clean package -DskipTests && \
+RUN ./mvnw -B clean package -DskipTests && \
     echo "=== Conteúdo do target ===" && \
     ls -lah target/ && \
     echo "=== Arquivos JAR ===" && \
@@ -24,7 +24,7 @@ WORKDIR /app
 
 RUN addgroup -S app && adduser -S app -G app
 
-COPY --from=build /app/target/app.jar app.jar
+COPY --from=build /app/target/*.jar app.jar
 
 RUN chown app:app /app/app.jar
 
@@ -33,6 +33,6 @@ USER app
 EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD wget -q --spider http://localhost:8080/api/v1/actuator/health/liveness || exit 1
+  CMD wget -q --spider http://localhost:8080/actuator/health/ || exit 1
 
 ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]

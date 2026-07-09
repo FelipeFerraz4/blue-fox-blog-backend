@@ -247,7 +247,7 @@ class PostServiceTest {
     @Test
     void shouldFindPostById() {
 
-        when(postRepository.findById(postId))
+        when(postRepository.findPostWithRelationsById(postId))
                 .thenReturn(Optional.of(post));
 
         when(postMapper.toResponseDTO(post))
@@ -262,7 +262,7 @@ class PostServiceTest {
     @Test
     void shouldThrowWhenPostNotFoundById() {
 
-        when(postRepository.findById(postId))
+        when(postRepository.findPostWithRelationsById(postId))
                 .thenReturn(Optional.empty());
 
         assertThrows(
@@ -301,7 +301,7 @@ class PostServiceTest {
     @Test
     void shouldFindAllPosts() {
 
-        when(postRepository.findAll())
+        when(postRepository.findAllWithRelations())
                 .thenReturn(List.of(post));
 
         when(postMapper.toResponseDTO(post))
@@ -349,7 +349,7 @@ class PostServiceTest {
     @Test
     void shouldUpdatePostSuccessfully() {
 
-        when(postRepository.findById(postId))
+        when(postRepository.findPostWithRelationsById(postId))
                 .thenReturn(Optional.of(post));
 
         when(categoryRepository.findById(categoryId))
@@ -384,7 +384,7 @@ class PostServiceTest {
                 authorId
         );
 
-        when(postRepository.findById(postId))
+        when(postRepository.findPostWithRelationsById(postId))
                 .thenReturn(Optional.of(post));
 
         when(postRepository.existsBySlug("novo-post"))
@@ -410,7 +410,7 @@ class PostServiceTest {
     @Test
     void shouldNotValidateSlugWhenSlugDoesNotChange() {
 
-        when(postRepository.findById(postId))
+        when(postRepository.findPostWithRelationsById(postId))
                 .thenReturn(Optional.of(post));
 
         when(categoryRepository.findById(categoryId))
@@ -433,7 +433,7 @@ class PostServiceTest {
     @Test
     void shouldThrowWhenCategoryNotFoundDuringUpdate() {
 
-        when(postRepository.findById(postId))
+        when(postRepository.findPostWithRelationsById(postId))
                 .thenReturn(Optional.of(post));
 
         when(categoryRepository.findById(categoryId))
@@ -450,7 +450,7 @@ class PostServiceTest {
     @Test
     void shouldThrowWhenAuthorNotFoundDuringUpdate() {
 
-        when(postRepository.findById(postId))
+        when(postRepository.findPostWithRelationsById(postId))
                 .thenReturn(Optional.of(post));
 
         when(categoryRepository.findById(categoryId))
@@ -484,7 +484,7 @@ class PostServiceTest {
                 authorId
         );
 
-        when(postRepository.findById(postId))
+        when(postRepository.findPostWithRelationsById(postId))
                 .thenReturn(Optional.of(post));
 
         when(categoryRepository.findById(categoryId))
@@ -522,7 +522,7 @@ class PostServiceTest {
                 authorId
         );
 
-        when(postRepository.findById(postId))
+        when(postRepository.findPostWithRelationsById(postId))
                 .thenReturn(Optional.of(post));
 
         when(categoryRepository.findById(categoryId))
@@ -548,7 +548,7 @@ class PostServiceTest {
 
         post.setViews(10L);
 
-        when(postRepository.findById(postId))
+        when(postRepository.findPostWithRelationsById(postId))
                 .thenReturn(Optional.of(post));
 
         when(postRepository.save(post))
@@ -564,7 +564,7 @@ class PostServiceTest {
     @Test
     void shouldThrowWhenIncrementViewsPostNotFound() {
 
-        when(postRepository.findById(postId))
+        when(postRepository.findPostWithRelationsById(postId))
                 .thenReturn(Optional.empty());
 
         assertThrows(
@@ -578,7 +578,7 @@ class PostServiceTest {
     @Test
     void shouldSoftDeletePost() {
 
-        when(postRepository.findById(postId))
+        when(postRepository.findPostWithRelationsById(postId))
                 .thenReturn(Optional.of(post));
 
         postService.softDelete(postId);
@@ -591,7 +591,7 @@ class PostServiceTest {
     @Test
     void shouldThrowWhenSoftDeletePostNotFound() {
 
-        when(postRepository.findById(postId))
+        when(postRepository.findPostWithRelationsById(postId))
                 .thenReturn(Optional.empty());
 
         assertThrows(
@@ -605,7 +605,7 @@ class PostServiceTest {
     @Test
     void shouldHardDeletePost() {
 
-        when(postRepository.findById(postId))
+        when(postRepository.findPostWithRelationsById(postId))
                 .thenReturn(Optional.of(post));
 
         postService.hardDelete(postId);
@@ -616,7 +616,7 @@ class PostServiceTest {
     @Test
     void shouldThrowWhenHardDeletePostNotFound() {
 
-        when(postRepository.findById(postId))
+        when(postRepository.findPostWithRelationsById(postId))
                 .thenReturn(Optional.empty());
 
         assertThrows(
@@ -630,7 +630,7 @@ class PostServiceTest {
     @Test
     void shouldUpdatePostStatus() {
 
-        when(postRepository.findById(postId))
+        when(postRepository.findPostWithRelationsById(postId))
                 .thenReturn(Optional.of(post));
 
         when(postRepository.save(post))
@@ -651,7 +651,7 @@ class PostServiceTest {
     @Test
     void shouldThrowWhenUpdatingStatusOfNonExistingPost() {
 
-        when(postRepository.findById(postId))
+        when(postRepository.findPostWithRelationsById(postId))
                 .thenReturn(Optional.empty());
 
         assertThrows(
