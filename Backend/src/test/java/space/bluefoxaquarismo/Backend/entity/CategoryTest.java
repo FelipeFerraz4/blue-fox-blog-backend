@@ -33,8 +33,11 @@ public class CategoryTest {
         OffsetDateTime createdAt = OffsetDateTime.now();
         OffsetDateTime updatedAt = OffsetDateTime.now();
 
+        Blog mockBlog = new Blog();
+
         Category category = new Category(
                 id,
+                mockBlog,
                 "Fish Care",
                 "Fish health and maintenance",
                 "fish-care",

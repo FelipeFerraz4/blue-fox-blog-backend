@@ -8,14 +8,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import space.bluefoxaquarismo.Backend.config.tenant.TenantContext;
 import space.bluefoxaquarismo.Backend.dto.author.RequestAuthorDTO;
 import space.bluefoxaquarismo.Backend.dto.author.ResultAuthorDTO;
 import space.bluefoxaquarismo.Backend.entity.Author;
+import space.bluefoxaquarismo.Backend.entity.Blog;
 import space.bluefoxaquarismo.Backend.entity.Status;
 import space.bluefoxaquarismo.Backend.exception.author.AuthorAlreadyExistsException;
 import space.bluefoxaquarismo.Backend.exception.author.AuthorNotFoundException;
 import space.bluefoxaquarismo.Backend.mapper.AuthorMapper;
 import space.bluefoxaquarismo.Backend.repository.AuthorRepository;
+import space.bluefoxaquarismo.Backend.repository.BlogRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,13 +41,18 @@ class AuthorServiceTest {
     private AuthorRepository authorRepository;
 
     @Mock
+    private BlogRepository blogRepository;
+
+    @Mock
     private AuthorMapper authorMapper;
 
     @InjectMocks
     private AuthorService authorService;
 
     private UUID authorId;
+    private UUID blogId;
     private Author author;
+    private Blog blog;
     private RequestAuthorDTO requestDTO;
     private ResultAuthorDTO responseDTO;
 
@@ -52,6 +60,10 @@ class AuthorServiceTest {
     void setUp() {
 
         authorId = UUID.randomUUID();
+        blogId = UUID.randomUUID();
+
+        blog = new Blog();
+        blog.setId(blogId);
 
         author = new Author();
         author.setId(authorId);
@@ -85,26 +97,34 @@ class AuthorServiceTest {
 
     @Test
     void shouldCreateAuthorSuccessfully() {
+        TenantContext.setCurrentTenant(blogId);
 
-        when(authorRepository.existsByName(anyString())).thenReturn(false);
-        when(authorRepository.existsBySlug(anyString())).thenReturn(false);
-        when(authorRepository.existsByEmail(anyString())).thenReturn(false);
+        try {
+            when(authorRepository.existsByName(anyString())).thenReturn(false);
+            when(authorRepository.existsBySlug(anyString())).thenReturn(false);
+            when(authorRepository.existsByEmail(anyString())).thenReturn(false);
 
-        when(authorMapper.toEntity(requestDTO))
-                .thenReturn(author);
+            when(authorMapper.toEntity(requestDTO))
+                    .thenReturn(author);
 
-        when(authorRepository.save(author))
-                .thenReturn(author);
+            when(authorRepository.save(author))
+                    .thenReturn(author);
 
-        when(authorMapper.toResponseDTO(author))
-                .thenReturn(responseDTO);
+            when(blogRepository.findById(blogId))
+                    .thenReturn(Optional.of(blog));
 
-        ResultAuthorDTO result =
-                authorService.create(requestDTO);
+            when(authorMapper.toResponseDTO(author))
+                    .thenReturn(responseDTO);
 
-        assertEquals(responseDTO, result);
+            ResultAuthorDTO result =
+                    authorService.create(requestDTO);
 
-        verify(authorRepository).save(author);
+            assertEquals(responseDTO, result);
+
+            verify(authorRepository).save(author);
+        } finally {
+            TenantContext.clear();
+        }
     }
 
     @Test

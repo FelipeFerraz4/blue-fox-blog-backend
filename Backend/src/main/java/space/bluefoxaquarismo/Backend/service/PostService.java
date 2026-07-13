@@ -1,20 +1,20 @@
 package space.bluefoxaquarismo.Backend.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import space.bluefoxaquarismo.Backend.config.tenant.TenantContext;
 import space.bluefoxaquarismo.Backend.dto.post.RequestPostDTO;
 import space.bluefoxaquarismo.Backend.dto.post.ResultPostDTO;
-import space.bluefoxaquarismo.Backend.entity.Author;
-import space.bluefoxaquarismo.Backend.entity.Category;
-import space.bluefoxaquarismo.Backend.entity.Post;
-import space.bluefoxaquarismo.Backend.entity.Status;
+import space.bluefoxaquarismo.Backend.entity.*;
 import space.bluefoxaquarismo.Backend.exception.author.AuthorNotFoundException;
 import space.bluefoxaquarismo.Backend.exception.category.CategoryNotFoundException;
 import space.bluefoxaquarismo.Backend.exception.post.PostAlreadyExistsException;
 import space.bluefoxaquarismo.Backend.exception.post.PostNotFoundException;
 import space.bluefoxaquarismo.Backend.mapper.PostMapper;
 import space.bluefoxaquarismo.Backend.repository.AuthorRepository;
+import space.bluefoxaquarismo.Backend.repository.BlogRepository;
 import space.bluefoxaquarismo.Backend.repository.CategoryRepository;
 import space.bluefoxaquarismo.Backend.repository.PostRepository;
 
@@ -29,6 +29,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final PostMapper postMapper;
     private final CategoryRepository categoryRepository;
+    private final BlogRepository blogRepository;
     private final AuthorRepository authorRepository;
 
     /**
@@ -47,9 +48,14 @@ public class PostService {
         Author author = authorRepository.findById(postDTO.authorId())
                 .orElseThrow(() -> new AuthorNotFoundException(postDTO.authorId()));
 
+        UUID currentBlogId = TenantContext.getCurrentTenant();
+        Blog currentBlog = blogRepository.findById(currentBlogId)
+                .orElseThrow(() -> new EntityNotFoundException("Blog not found"));
+
         Post post = postMapper.toEntity(postDTO);
         post.setCategory(category);
         post.setAuthor(author);
+        post.setBlog(currentBlog);
 
         if (post.isPublished() && post.getPublishedAt() == null) {
             post.setPublishedAt(OffsetDateTime.now());

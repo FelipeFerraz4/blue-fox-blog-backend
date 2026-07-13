@@ -1,14 +1,19 @@
 package space.bluefoxaquarismo.Backend.repository;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import space.bluefoxaquarismo.Backend.config.AbstractIntegrationTest;
+import space.bluefoxaquarismo.Backend.config.tenant.TenantContext;
+import space.bluefoxaquarismo.Backend.entity.Blog;
 import space.bluefoxaquarismo.Backend.entity.Category;
 import space.bluefoxaquarismo.Backend.entity.Status;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,11 +22,46 @@ class CategoryRepositoryTest extends AbstractIntegrationTest {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    @Autowired
+    private AuthorRepository authorRepository;
+
+    @Autowired
+    private PostRepository postRepository;
+
+    @Autowired
+    private BlogRepository blogRepository;
+
+    private Blog defaultBlog;
+
+    @BeforeEach
+    void setUp() {
+        postRepository.deleteAll();
+        categoryRepository.deleteAll();
+        authorRepository.deleteAll();
+        blogRepository.deleteAll();
+
+        defaultBlog = Blog.builder()
+                .name("Blue Fox Aquarismo")
+                .slug("blue-fox-aquarismo")
+                .status(Status.ACTIVE)
+                .build();
+
+        defaultBlog = blogRepository.save(defaultBlog);
+
+        TenantContext.setCurrentTenant(defaultBlog.getId());
+    }
+
+    @AfterEach
+    void tearDown() {
+        TenantContext.clear();
+    }
+
     @Test
     @DisplayName("Should find category by name")
     void shouldFindCategoryByName() {
 
         Category category = Category.builder()
+                .blog(defaultBlog)
                 .name("Fish Care")
                 .description("Content related to fish care")
                 .slug("fish-care")
@@ -53,6 +93,7 @@ class CategoryRepositoryTest extends AbstractIntegrationTest {
     void shouldFindCategoryBySlug() {
 
         Category category = Category.builder()
+                .blog(defaultBlog)
                 .name("Aquarium Plants")
                 .description("Plants category")
                 .slug("aquarium-plants")
@@ -74,6 +115,7 @@ class CategoryRepositoryTest extends AbstractIntegrationTest {
     void shouldReturnTrueWhenCategoryExistsByName() {
 
         Category category = Category.builder()
+                .blog(defaultBlog)
                 .name("Shrimps")
                 .description("Shrimp category")
                 .slug("shrimps")
@@ -103,6 +145,7 @@ class CategoryRepositoryTest extends AbstractIntegrationTest {
     void shouldReturnTrueWhenCategoryExistsBySlug() {
 
         Category category = Category.builder()
+                .blog(defaultBlog)
                 .name("Corals")
                 .description("Coral category")
                 .slug("corals")
@@ -132,6 +175,7 @@ class CategoryRepositoryTest extends AbstractIntegrationTest {
     void shouldFindAllCategoriesByStatus() {
 
         Category activeCategory = Category.builder()
+                .blog(defaultBlog)
                 .name("Fresh Water")
                 .description("Fresh water fish")
                 .slug("fresh-water")
@@ -139,6 +183,7 @@ class CategoryRepositoryTest extends AbstractIntegrationTest {
                 .build();
 
         Category inactiveCategory = Category.builder()
+                .blog(defaultBlog)
                 .name("Salt Water")
                 .description("Salt water fish")
                 .slug("salt-water")

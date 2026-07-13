@@ -8,18 +8,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import space.bluefoxaquarismo.Backend.config.tenant.TenantContext;
 import space.bluefoxaquarismo.Backend.dto.post.RequestPostDTO;
 import space.bluefoxaquarismo.Backend.dto.post.ResultPostDTO;
-import space.bluefoxaquarismo.Backend.entity.Author;
-import space.bluefoxaquarismo.Backend.entity.Category;
-import space.bluefoxaquarismo.Backend.entity.Post;
-import space.bluefoxaquarismo.Backend.entity.Status;
+import space.bluefoxaquarismo.Backend.entity.*;
 import space.bluefoxaquarismo.Backend.exception.author.AuthorNotFoundException;
 import space.bluefoxaquarismo.Backend.exception.category.CategoryNotFoundException;
 import space.bluefoxaquarismo.Backend.exception.post.PostAlreadyExistsException;
 import space.bluefoxaquarismo.Backend.exception.post.PostNotFoundException;
 import space.bluefoxaquarismo.Backend.mapper.PostMapper;
 import space.bluefoxaquarismo.Backend.repository.AuthorRepository;
+import space.bluefoxaquarismo.Backend.repository.BlogRepository;
 import space.bluefoxaquarismo.Backend.repository.CategoryRepository;
 import space.bluefoxaquarismo.Backend.repository.PostRepository;
 
@@ -48,16 +47,21 @@ class PostServiceTest {
     @Mock
     private AuthorRepository authorRepository;
 
+    @Mock
+    private BlogRepository blogRepository;
+
     @InjectMocks
     private PostService postService;
 
     private UUID postId;
     private UUID categoryId;
     private UUID authorId;
+    private UUID blogId;
 
     private Post post;
     private Category category;
     private Author author;
+    private Blog blog;
 
     private RequestPostDTO requestDTO;
     private ResultPostDTO responseDTO;
@@ -68,12 +72,16 @@ class PostServiceTest {
         postId = UUID.randomUUID();
         categoryId = UUID.randomUUID();
         authorId = UUID.randomUUID();
+        blogId = UUID.randomUUID();
 
         category = new Category();
         category.setId(categoryId);
 
         author = new Author();
         author.setId(authorId);
+
+        blog = new Blog();
+        blog.setId(blogId);
 
         post = new Post();
         post.setId(postId);
@@ -119,33 +127,42 @@ class PostServiceTest {
 
     @Test
     void shouldCreatePostSuccessfully() {
+        TenantContext.setCurrentTenant(blogId);
 
-        when(postRepository.existsBySlug(anyString()))
-                .thenReturn(false);
+        try {
+            when(postRepository.existsBySlug(anyString()))
+                    .thenReturn(false);
 
-        when(categoryRepository.findById(categoryId))
-                .thenReturn(Optional.of(category));
+            when(categoryRepository.findById(categoryId))
+                    .thenReturn(Optional.of(category));
 
-        when(authorRepository.findById(authorId))
-                .thenReturn(Optional.of(author));
+            when(authorRepository.findById(authorId))
+                    .thenReturn(Optional.of(author));
 
-        when(postMapper.toEntity(requestDTO))
-                .thenReturn(post);
+            when(blogRepository.findById(blogId))
+                    .thenReturn(Optional.of(blog));
 
-        when(postRepository.save(post))
-                .thenReturn(post);
+            when(postMapper.toEntity(requestDTO))
+                    .thenReturn(post);
 
-        when(postMapper.toResponseDTO(post))
-                .thenReturn(responseDTO);
+            when(postRepository.save(post))
+                    .thenReturn(post);
 
-        ResultPostDTO result =
-                postService.create(requestDTO);
+            when(postMapper.toResponseDTO(post))
+                    .thenReturn(responseDTO);
 
-        assertEquals(responseDTO, result);
+            ResultPostDTO result = postService.create(requestDTO);
 
-        verify(postRepository).save(post);
-        assertEquals(category, post.getCategory());
-        assertEquals(author, post.getAuthor());
+            assertEquals(responseDTO, result);
+
+            verify(postRepository).save(post);
+            assertEquals(category, post.getCategory());
+            assertEquals(author, post.getAuthor());
+            assertEquals(blog, post.getBlog());
+
+        } finally {
+            TenantContext.clear();
+        }
     }
 
     @Test
@@ -204,44 +221,53 @@ class PostServiceTest {
 
     @Test
     void shouldSetPublishedAtWhenCreatingPublishedPost() {
+        TenantContext.setCurrentTenant(blogId);
 
-        RequestPostDTO publishedDTO = new RequestPostDTO(
-                "Meu Post",
-                "Descrição",
-                "image.jpg",
-                "meu-post",
-                "5 min",
-                true,
-                categoryId,
-                authorId
-        );
+        try {
+            RequestPostDTO publishedDTO = new RequestPostDTO(
+                    "Meu Post",
+                    "Descrição",
+                    "image.jpg",
+                    "meu-post",
+                    "5 min",
+                    true,
+                    categoryId,
+                    authorId
+            );
 
-        post.setPublished(true);
-        post.setPublishedAt(null);
+            post.setPublished(true);
+            post.setPublishedAt(null);
 
-        when(postRepository.existsBySlug(anyString()))
-                .thenReturn(false);
+            when(postRepository.existsBySlug(anyString()))
+                    .thenReturn(false);
 
-        when(categoryRepository.findById(categoryId))
-                .thenReturn(Optional.of(category));
+            when(categoryRepository.findById(categoryId))
+                    .thenReturn(Optional.of(category));
 
-        when(authorRepository.findById(authorId))
-                .thenReturn(Optional.of(author));
+            when(authorRepository.findById(authorId))
+                    .thenReturn(Optional.of(author));
 
-        when(postMapper.toEntity(publishedDTO))
-                .thenReturn(post);
+            when(blogRepository.findById(blogId))
+                    .thenReturn(Optional.of(blog));
 
-        when(postRepository.save(post))
-                .thenReturn(post);
+            when(postMapper.toEntity(publishedDTO))
+                    .thenReturn(post);
 
-        when(postMapper.toResponseDTO(post))
-                .thenReturn(responseDTO);
+            when(postRepository.save(post))
+                    .thenReturn(post);
 
-        postService.create(publishedDTO);
+            when(postMapper.toResponseDTO(post))
+                    .thenReturn(responseDTO);
 
-        assertNotNull(post.getPublishedAt());
+            postService.create(publishedDTO);
 
-        verify(postRepository).save(post);
+            assertNotNull(post.getPublishedAt());
+
+            verify(postRepository).save(post);
+
+        } finally {
+            TenantContext.clear();
+        }
     }
 
     @Test

@@ -1,11 +1,14 @@
 package space.bluefoxaquarismo.Backend.repository;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import space.bluefoxaquarismo.Backend.config.AbstractIntegrationTest;
+import space.bluefoxaquarismo.Backend.config.tenant.TenantContext;
 import space.bluefoxaquarismo.Backend.entity.Author;
+import space.bluefoxaquarismo.Backend.entity.Blog;
 import space.bluefoxaquarismo.Backend.entity.Category;
 import space.bluefoxaquarismo.Backend.entity.Post;
 import space.bluefoxaquarismo.Backend.entity.Status;
@@ -26,17 +29,31 @@ class PostRepositoryTest extends AbstractIntegrationTest {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    @Autowired
+    private BlogRepository blogRepository;
+
     private Author defaultAuthor;
     private Category defaultCategory;
+    private Blog defaultBlog;
 
     @BeforeEach
     void setUp() {
-        // Limpa a tabela de posts antes de cada teste para garantir isolamento
         postRepository.deleteAll();
-        authorRepository.deleteAll();
         categoryRepository.deleteAll();
+        authorRepository.deleteAll();
+        blogRepository.deleteAll();
+
+        defaultBlog = Blog.builder()
+                .name("Blue Fox Aquarismo")
+                .slug("blue-fox-aquarismo")
+                .status(Status.ACTIVE)
+                .build();
+        defaultBlog = blogRepository.save(defaultBlog);
+
+        TenantContext.setCurrentTenant(defaultBlog.getId());
 
         defaultAuthor = Author.builder()
+                .blog(defaultBlog)
                 .name("Leila Cunha Cardoso")
                 .slug("leila-cunha")
                 .email("leila@bluefoxaquarismo.space")
@@ -45,18 +62,25 @@ class PostRepositoryTest extends AbstractIntegrationTest {
         authorRepository.save(defaultAuthor);
 
         defaultCategory = Category.builder()
+                .blog(defaultBlog)
                 .name("Aquários Plantados")
-                .description("Artigos e tutorias sobre montagem e manutenção de aquários plantados.") // <-- CORRIGIDO: Adicionado campo obrigatório
+                .description("Artigos e tutorias sobre montagem e manutenção de aquários plantados.")
                 .slug("aquarios-plantados")
                 .status(Status.ACTIVE)
                 .build();
         categoryRepository.save(defaultCategory);
     }
 
+    @AfterEach
+    void tearDown() {
+        TenantContext.clear();
+    }
+
     @Test
     @DisplayName("Should find post by slug")
     void shouldFindPostBySlug() {
         Post post = Post.builder()
+                .blog(defaultBlog)
                 .title("Como montar seu primeiro aquário plantado")
                 .description("Um guia passo a passo completo...")
                 .slug("como-montar-aquario-plantado")
@@ -86,6 +110,7 @@ class PostRepositoryTest extends AbstractIntegrationTest {
     @DisplayName("Should return true when post exists by slug")
     void shouldReturnTrueWhenPostExistsBySlug() {
         Post post = Post.builder()
+                .blog(defaultBlog)
                 .title("Alimentação de Peixes")
                 .description("Dicas sobre rações...")
                 .slug("alimentacao-de-peixes")
@@ -112,6 +137,7 @@ class PostRepositoryTest extends AbstractIntegrationTest {
     @DisplayName("Should find all posts by status")
     void shouldFindAllPostsByStatus() {
         Post activePost = Post.builder()
+                .blog(defaultBlog)
                 .title("Post Ativo")
                 .description("Desc...")
                 .slug("post-ativo")
@@ -121,6 +147,7 @@ class PostRepositoryTest extends AbstractIntegrationTest {
                 .build();
 
         Post inactivePost = Post.builder()
+                .blog(defaultBlog)
                 .title("Post Inativo")
                 .description("Desc...")
                 .slug("post-inativo")
@@ -144,6 +171,7 @@ class PostRepositoryTest extends AbstractIntegrationTest {
     @DisplayName("Should find all posts by published and status")
     void shouldFindAllPostsByPublishedAndStatus() {
         Post publicPost = Post.builder()
+                .blog(defaultBlog)
                 .title("Post Público")
                 .description("Desc...")
                 .slug("post-publico")
@@ -154,6 +182,7 @@ class PostRepositoryTest extends AbstractIntegrationTest {
                 .build();
 
         Post draftPost = Post.builder()
+                .blog(defaultBlog)
                 .title("Rascunho")
                 .description("Desc...")
                 .slug("rascunho")
@@ -177,6 +206,7 @@ class PostRepositoryTest extends AbstractIntegrationTest {
     @DisplayName("Should find all posts by author id")
     void shouldFindAllPostsByAuthorId() {
         Post post = Post.builder()
+                .blog(defaultBlog)
                 .title("Post da Leila")
                 .description("Desc...")
                 .slug("post-da-leila")
@@ -189,7 +219,6 @@ class PostRepositoryTest extends AbstractIntegrationTest {
         List<Post> results = postRepository.findAllByAuthorId(defaultAuthor.getId());
 
         assertThat(results).hasSize(1);
-        // Faz o mesmo para o autor
         assertThat(results)
                 .extracting(p -> p.getAuthor().getId())
                 .containsExactly(defaultAuthor.getId());
@@ -199,6 +228,7 @@ class PostRepositoryTest extends AbstractIntegrationTest {
     @DisplayName("Should find all posts by category id")
     void shouldFindAllPostsByCategoryId() {
         Post post = Post.builder()
+                .blog(defaultBlog)
                 .title("Post de Plantados")
                 .description("Desc...")
                 .slug("post-de-plantados")
@@ -211,7 +241,6 @@ class PostRepositoryTest extends AbstractIntegrationTest {
         List<Post> results = postRepository.findAllByCategoryId(defaultCategory.getId());
 
         assertThat(results).hasSize(1);
-        // Extrai o ID da categoria do post retornado e compara com o ID esperado
         assertThat(results)
                 .extracting(p -> p.getCategory().getId())
                 .containsExactly(defaultCategory.getId());
@@ -221,6 +250,7 @@ class PostRepositoryTest extends AbstractIntegrationTest {
     @DisplayName("Should find all posts by category id, published, and status")
     void shouldFindAllPostsByCategoryIdAndPublishedAndStatus() {
         Post targetPost = Post.builder()
+                .blog(defaultBlog)
                 .title("Post Alvo")
                 .description("Desc...")
                 .slug("post-alvo")
@@ -231,6 +261,7 @@ class PostRepositoryTest extends AbstractIntegrationTest {
                 .build();
 
         Post ignoredPost = Post.builder()
+                .blog(defaultBlog)
                 .title("Post Oculto")
                 .description("Desc...")
                 .slug("post-oculto")

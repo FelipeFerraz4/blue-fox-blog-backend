@@ -43,9 +43,11 @@ public class PostTest {
 
         Author mockAuthor = new Author();
         Category mockCategory = new Category();
+        Blog mockBlog = new Blog();
 
         Post post = new Post(
                 id,
+                mockBlog,
                 "Como montar seu primeiro aquário plantado",
                 "Um guia passo a passo completo para iniciantes no aquarismo plantado...",
                 "https://example.com/images/aquario-plantado.jpg",

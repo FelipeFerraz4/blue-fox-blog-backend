@@ -3,22 +3,22 @@ package space.bluefoxaquarismo.Backend.entity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.annotations.*;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Getter
 @Setter
-@ToString(exclude = {"author", "category"})
+@ToString(exclude = {"author", "category", "blog"})
 @EqualsAndHashCode(of = "id")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Entity
 @Table(name = "posts")
+@FilterDef(name = "blogFilter", parameters = @ParamDef(name = "blogId", type = UUID.class))
+@Filter(name = "blogFilter", condition = "blog_id = :blogId")
 @Schema(name = "Post", description = "Represents a blog post or article in the system.")
 public class Post {
 
@@ -32,6 +32,15 @@ public class Post {
             accessMode = Schema.AccessMode.READ_ONLY
     )
     private UUID id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "blog_id", nullable = false)
+    @Schema(
+            description = "The blog tenant this author belongs to",
+            example = "3aa0b234-d19b-4cd3-b219-112233445566",
+            accessMode = Schema.AccessMode.READ_ONLY
+    )
+    private Blog blog;
 
     @Column(nullable = false)
     @Schema(

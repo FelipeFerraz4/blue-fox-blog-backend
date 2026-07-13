@@ -1,16 +1,20 @@
 package space.bluefoxaquarismo.Backend.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import space.bluefoxaquarismo.Backend.config.tenant.TenantContext;
 import space.bluefoxaquarismo.Backend.dto.author.RequestAuthorDTO;
 import space.bluefoxaquarismo.Backend.dto.author.ResultAuthorDTO;
 import space.bluefoxaquarismo.Backend.entity.Author;
+import space.bluefoxaquarismo.Backend.entity.Blog;
 import space.bluefoxaquarismo.Backend.entity.Status;
 import space.bluefoxaquarismo.Backend.exception.author.AuthorAlreadyExistsException;
 import space.bluefoxaquarismo.Backend.exception.author.AuthorNotFoundException;
 import space.bluefoxaquarismo.Backend.mapper.AuthorMapper;
 import space.bluefoxaquarismo.Backend.repository.AuthorRepository;
+import space.bluefoxaquarismo.Backend.repository.BlogRepository;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +24,7 @@ import java.util.UUID;
 public class AuthorService {
 
     private final AuthorRepository authorRepository;
+    private final BlogRepository blogRepository;
     private final AuthorMapper authorMapper;
 
     /**
@@ -34,7 +39,13 @@ public class AuthorService {
         validateSlug(authorDTO.slug());
         validateEmail(authorDTO.email());
 
+        UUID currentBlogId = TenantContext.getCurrentTenant();
+        Blog currentBlog = blogRepository.findById(currentBlogId)
+                .orElseThrow(() -> new EntityNotFoundException("Blog not found"));
+
         Author author = authorMapper.toEntity(authorDTO);
+
+        author.setBlog(currentBlog);
 
         return saveAndMap(author);
     }

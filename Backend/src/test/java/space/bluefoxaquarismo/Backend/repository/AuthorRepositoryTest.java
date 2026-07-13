@@ -1,11 +1,14 @@
 package space.bluefoxaquarismo.Backend.repository;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import space.bluefoxaquarismo.Backend.config.AbstractIntegrationTest;
+import space.bluefoxaquarismo.Backend.config.tenant.TenantContext;
 import space.bluefoxaquarismo.Backend.entity.Author;
+import space.bluefoxaquarismo.Backend.entity.Blog;
 import space.bluefoxaquarismo.Backend.entity.Status;
 
 import java.util.List;
@@ -18,15 +21,45 @@ class AuthorRepositoryTest extends AbstractIntegrationTest {
     @Autowired
     private AuthorRepository authorRepository;
 
+    @Autowired
+    private PostRepository postRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private BlogRepository blogRepository;
+
+    private Blog defaultBlog;
+
     @BeforeEach
     void setUp() {
+        postRepository.deleteAll();
+        categoryRepository.deleteAll();
         authorRepository.deleteAll();
+        blogRepository.deleteAll();
+
+        defaultBlog = Blog.builder()
+                .name("Blue Fox Aquarismo")
+                .slug("blue-fox-aquarismo")
+                .status(Status.ACTIVE)
+                .build();
+
+        defaultBlog = blogRepository.save(defaultBlog);
+
+        TenantContext.setCurrentTenant(defaultBlog.getId());
+    }
+
+    @AfterEach
+    void tearDown() {
+        TenantContext.clear();
     }
 
     @Test
     @DisplayName("Should find author by name")
     void shouldFindAuthorByName() {
         Author author = Author.builder()
+                .blog(defaultBlog)
                 .name("Leila Cunha Cardoso")
                 .bio("Aquarist specialized in freshwater aquascaping.")
                 .slug("leila-cunha-cardoso")
@@ -54,6 +87,7 @@ class AuthorRepositoryTest extends AbstractIntegrationTest {
     @DisplayName("Should find author by slug")
     void shouldFindAuthorBySlug() {
         Author author = Author.builder()
+                .blog(defaultBlog)
                 .name("John Doe")
                 .bio("Marine biology researcher.")
                 .slug("john-doe")
@@ -73,6 +107,7 @@ class AuthorRepositoryTest extends AbstractIntegrationTest {
     @DisplayName("Should find author by email")
     void shouldFindAuthorByEmail() {
         Author author = Author.builder()
+                .blog(defaultBlog)
                 .name("Alice Smith")
                 .bio("Reef keeper expert.")
                 .slug("alice-smith")
@@ -92,6 +127,7 @@ class AuthorRepositoryTest extends AbstractIntegrationTest {
     @DisplayName("Should return true when author exists by name")
     void shouldReturnTrueWhenAuthorExistsByName() {
         Author author = Author.builder()
+                .blog(defaultBlog)
                 .name("Bob Wilson")
                 .slug("bob-wilson")
                 .email("bob.wilson@bluefoxaquarismo.space")
@@ -117,6 +153,7 @@ class AuthorRepositoryTest extends AbstractIntegrationTest {
     @DisplayName("Should return true when author exists by slug")
     void shouldReturnTrueWhenAuthorExistsBySlug() {
         Author author = Author.builder()
+                .blog(defaultBlog)
                 .name("Charlie Brown")
                 .slug("charlie-brown")
                 .email("charlie.brown@bluefoxaquarismo.space")
@@ -142,6 +179,7 @@ class AuthorRepositoryTest extends AbstractIntegrationTest {
     @DisplayName("Should return true when author exists by email")
     void shouldReturnTrueWhenAuthorExistsByEmail() {
         Author author = Author.builder()
+                .blog(defaultBlog)
                 .name("David Miller")
                 .slug("david-miller")
                 .email("david.miller@bluefoxaquarismo.space")
@@ -167,6 +205,7 @@ class AuthorRepositoryTest extends AbstractIntegrationTest {
     @DisplayName("Should find all authors by status")
     void shouldFindAllAuthorsByStatus() {
         Author activeAuthor = Author.builder()
+                .blog(defaultBlog)
                 .name("Eva Green")
                 .slug("eva-green")
                 .email("eva.green@bluefoxaquarismo.space")
@@ -174,6 +213,7 @@ class AuthorRepositoryTest extends AbstractIntegrationTest {
                 .build();
 
         Author inactiveAuthor = Author.builder()
+                .blog(defaultBlog)
                 .name("Frank Castle")
                 .slug("frank-castle")
                 .email("frank.castle@bluefoxaquarismo.space")

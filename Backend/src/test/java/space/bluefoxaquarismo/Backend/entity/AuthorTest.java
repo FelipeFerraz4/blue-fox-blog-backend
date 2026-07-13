@@ -35,8 +35,11 @@ public class AuthorTest {
         OffsetDateTime createdAt = OffsetDateTime.now();
         OffsetDateTime updatedAt = OffsetDateTime.now();
 
+        Blog mockBlog = new Blog();
+
         Author author = new Author(
                 id,
+                mockBlog,
                 "Leila Cunha Cardoso",
                 "Aquarist specialized in freshwater aquascaping.",
                 "https://example.com/profile.jpg",

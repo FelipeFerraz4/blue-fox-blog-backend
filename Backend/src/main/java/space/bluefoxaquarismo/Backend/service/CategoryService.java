@@ -1,15 +1,19 @@
 package space.bluefoxaquarismo.Backend.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import space.bluefoxaquarismo.Backend.config.tenant.TenantContext;
 import space.bluefoxaquarismo.Backend.dto.category.RequestCategoryDTO;
 import space.bluefoxaquarismo.Backend.dto.category.ResultCategoryDTO;
+import space.bluefoxaquarismo.Backend.entity.Blog;
 import space.bluefoxaquarismo.Backend.entity.Category;
 import space.bluefoxaquarismo.Backend.entity.Status;
 import space.bluefoxaquarismo.Backend.exception.category.CategoryAlreadyExistsException;
 import space.bluefoxaquarismo.Backend.exception.category.CategoryNotFoundException;
 import space.bluefoxaquarismo.Backend.mapper.CategoryMapper;
+import space.bluefoxaquarismo.Backend.repository.BlogRepository;
 import space.bluefoxaquarismo.Backend.repository.CategoryRepository;
 
 import java.util.List;
@@ -20,6 +24,7 @@ import java.util.UUID;
 public class CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final BlogRepository blogRepository;
     private final CategoryMapper categoryMapper;
 
     /**
@@ -33,7 +38,14 @@ public class CategoryService {
         validateName(categoryDTO.name());
         validateSlug(categoryDTO.slug());
 
+        UUID currentBlogId = TenantContext.getCurrentTenant();
+        Blog currentBlog = blogRepository.findById(currentBlogId)
+                .orElseThrow(() -> new EntityNotFoundException("Blog not found"));
+
         Category category = categoryMapper.toEntity(categoryDTO);
+
+        category.setBlog(currentBlog);
+
 
         return saveAndMap(category);
     }

@@ -6,13 +6,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import space.bluefoxaquarismo.Backend.config.tenant.TenantContext;
 import space.bluefoxaquarismo.Backend.dto.category.RequestCategoryDTO;
 import space.bluefoxaquarismo.Backend.dto.category.ResultCategoryDTO;
+import space.bluefoxaquarismo.Backend.entity.Blog;
 import space.bluefoxaquarismo.Backend.entity.Category;
 import space.bluefoxaquarismo.Backend.entity.Status;
 import space.bluefoxaquarismo.Backend.exception.category.CategoryAlreadyExistsException;
 import space.bluefoxaquarismo.Backend.exception.category.CategoryNotFoundException;
 import space.bluefoxaquarismo.Backend.mapper.CategoryMapper;
+import space.bluefoxaquarismo.Backend.repository.BlogRepository;
 import space.bluefoxaquarismo.Backend.repository.CategoryRepository;
 
 import java.time.OffsetDateTime;
@@ -30,13 +33,18 @@ class CategoryServiceTest {
     private CategoryRepository categoryRepository;
 
     @Mock
+    private BlogRepository blogRepository;
+
+    @Mock
     private CategoryMapper categoryMapper;
 
     @InjectMocks
     private CategoryService categoryService;
 
     private UUID categoryId;
+    private UUID blogId;
     private Category category;
+    private Blog blog;
     private RequestCategoryDTO requestDTO;
     private ResultCategoryDTO responseDTO;
 
@@ -44,6 +52,10 @@ class CategoryServiceTest {
     void setUp() {
 
         categoryId = UUID.randomUUID();
+        blogId = UUID.randomUUID();
+
+        blog = new Blog();
+        blog.setId(blogId);
 
         category = Category.builder()
                 .id(categoryId)
@@ -71,35 +83,43 @@ class CategoryServiceTest {
                 now
         );
     }
-
     @Test
     void shouldCreateCategorySuccessfully() {
+        TenantContext.setCurrentTenant(blogId);
 
-        when(categoryRepository.existsByName(requestDTO.name()))
-                .thenReturn(false);
+        try {
+            when(categoryRepository.existsByName(requestDTO.name()))
+                    .thenReturn(false);
 
-        when(categoryRepository.existsBySlug(requestDTO.slug()))
-                .thenReturn(false);
+            when(categoryRepository.existsBySlug(requestDTO.slug()))
+                    .thenReturn(false);
 
-        when(categoryMapper.toEntity(requestDTO))
-                .thenReturn(category);
+            when(blogRepository.findById(blogId))
+                    .thenReturn(Optional.of(blog));
 
-        when(categoryRepository.save(category))
-                .thenReturn(category);
+            when(categoryMapper.toEntity(requestDTO))
+                    .thenReturn(category);
 
-        when(categoryMapper.toResponseDTO(category))
-                .thenReturn(responseDTO);
+            when(categoryRepository.save(category))
+                    .thenReturn(category);
 
-        ResultCategoryDTO result = categoryService.create(requestDTO);
+            when(categoryMapper.toResponseDTO(category))
+                    .thenReturn(responseDTO);
 
-        assertNotNull(result);
-        assertEquals(responseDTO, result);
+            ResultCategoryDTO result = categoryService.create(requestDTO);
 
-        verify(categoryRepository).existsByName(requestDTO.name());
-        verify(categoryRepository).existsBySlug(requestDTO.slug());
-        verify(categoryMapper).toEntity(requestDTO);
-        verify(categoryRepository).save(category);
-        verify(categoryMapper).toResponseDTO(category);
+            assertNotNull(result);
+            assertEquals(responseDTO, result);
+
+            verify(categoryRepository).existsByName(requestDTO.name());
+            verify(categoryRepository).existsBySlug(requestDTO.slug());
+            verify(categoryMapper).toEntity(requestDTO);
+            verify(categoryRepository).save(category);
+            verify(categoryMapper).toResponseDTO(category);
+
+        } finally {
+            TenantContext.clear();
+        }
     }
 
     @Test
