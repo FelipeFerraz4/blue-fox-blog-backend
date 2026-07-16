@@ -2,11 +2,12 @@ package space.bluefoxaquarismo.Backend.entity;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
 import lombok.*;
 import org.hibernate.annotations.*;
 
 import java.time.OffsetDateTime;
-import java.util.UUID;
+import java.util.*;
 
 @Getter
 @Setter
@@ -106,6 +107,17 @@ public class Post {
     @Builder.Default
     private Long views = 0L;
 
+    @Column(nullable = false)
+    @Schema(
+            description = "Total number of likes this post has received",
+            example = "100"
+    )
+    private Long likes = 0L;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Schema(description = "List of comments associated with this post")
+    private Set<Comment> comments = new LinkedHashSet<>();
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "author_id", nullable = false)
     @Schema(description = "The author who wrote the post")
@@ -115,6 +127,19 @@ public class Post {
     @JoinColumn(name = "category_id", nullable = false)
     @Schema(description = "The category this post belongs to")
     private Category category;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(
+            name = "post_recommendations",
+            joinColumns = @JoinColumn(name = "post_id")
+    )
+    @Column(name = "recommended_post_id", nullable = false)
+    @Schema(
+            description = "List of UUIDs of the recommended posts",
+            example = "[\"3aa0b234-d19b-4cd3-b219-112233445566\"]"
+    )
+    @Builder.Default
+    private Set<UUID> recommendedPostIds = new LinkedHashSet<>();
 
     @Column(nullable = false, updatable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE", name = "created_at")
     @CreationTimestamp
@@ -133,4 +158,18 @@ public class Post {
             accessMode = Schema.AccessMode.READ_ONLY
     )
     private OffsetDateTime updatedAt;
+
+    /**
+     * Retorna a quantidade de comentários ativos associados a este post.
+     *
+     * @return the number of comments on a post
+     */
+    public Long getCommentsCount() {
+        if (this.comments == null) {
+            return 0L;
+        }
+        return this.comments.stream()
+                .filter(comment -> comment.getStatus() == Status.ACTIVE)
+                .count();
+    }
 }

@@ -2,6 +2,9 @@ package space.bluefoxaquarismo.Backend.dto.post;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
+
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Schema(description = "Request payload for post creation or update")
@@ -67,6 +70,13 @@ public record RequestPostDTO(
                 example = "f47ac10b-58cc-4372-a567-0e02b2c3d479"
         )
         @NotNull(message = "Author ID cannot be null")
-        UUID authorId
+        UUID authorId,
+
+        @Schema(
+                description = "The list of unique identifier of recommended posts this post belongs to",
+                example = "g47ac10b-58cc-4372-a567-0e02b2c3d478"
+        )
+        @NotNull(message = "Recommended post IDs cannot be null")
+        Set<UUID> recommendedPostIds
 
 ) {}

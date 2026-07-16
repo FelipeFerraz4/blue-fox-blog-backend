@@ -7,6 +7,7 @@ import jakarta.validation.ValidatorFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -34,7 +35,8 @@ class RequestPostDTOTest {
                 "5 min",
                 true,
                 UUID.randomUUID(),
-                UUID.randomUUID()
+                UUID.randomUUID(),
+                new LinkedHashSet<>()
         );
 
         Set<ConstraintViolation<RequestPostDTO>> violations =
@@ -54,7 +56,8 @@ class RequestPostDTOTest {
                 "5 min",
                 true,
                 UUID.randomUUID(),
-                UUID.randomUUID()
+                UUID.randomUUID(),
+                new LinkedHashSet<>()
         );
 
         assertFalse(validator.validate(dto).isEmpty());
@@ -71,7 +74,8 @@ class RequestPostDTOTest {
                 "5 min",
                 true,
                 UUID.randomUUID(),
-                UUID.randomUUID()
+                UUID.randomUUID(),
+                new LinkedHashSet<>()
         );
 
         Set<ConstraintViolation<RequestPostDTO>> violations =
@@ -97,7 +101,8 @@ class RequestPostDTOTest {
                 "5 min",
                 true,
                 UUID.randomUUID(),
-                UUID.randomUUID()
+                UUID.randomUUID(),
+                new LinkedHashSet<>()
         );
 
         Set<ConstraintViolation<RequestPostDTO>> violations =
@@ -123,7 +128,8 @@ class RequestPostDTOTest {
                 "5 min",
                 true,
                 UUID.randomUUID(),
-                UUID.randomUUID()
+                UUID.randomUUID(),
+                new LinkedHashSet<>()
         );
 
         Set<ConstraintViolation<RequestPostDTO>> violations =
@@ -149,7 +155,8 @@ class RequestPostDTOTest {
                 "5 min",
                 true,
                 UUID.randomUUID(),
-                UUID.randomUUID()
+                UUID.randomUUID(),
+                new LinkedHashSet<>()
         );
 
         assertFalse(validator.validate(dto).isEmpty());
@@ -166,7 +173,8 @@ class RequestPostDTOTest {
                 "5 min",
                 true,
                 UUID.randomUUID(),
-                UUID.randomUUID()
+                UUID.randomUUID(),
+                new LinkedHashSet<>()
         );
 
         assertFalse(validator.validate(dto).isEmpty());
@@ -183,7 +191,8 @@ class RequestPostDTOTest {
                 "5 min",
                 true,
                 UUID.randomUUID(),
-                UUID.randomUUID()
+                UUID.randomUUID(),
+                new LinkedHashSet<>()
         );
 
         Set<ConstraintViolation<RequestPostDTO>> violations =
@@ -209,7 +218,8 @@ class RequestPostDTOTest {
                 "5 min",
                 true,
                 null,
-                UUID.randomUUID()
+                UUID.randomUUID(),
+                new LinkedHashSet<>()
         );
 
         Set<ConstraintViolation<RequestPostDTO>> violations =
@@ -235,7 +245,8 @@ class RequestPostDTOTest {
                 "5 min",
                 true,
                 UUID.randomUUID(),
-                null
+                null,
+                new LinkedHashSet<>()
         );
 
         Set<ConstraintViolation<RequestPostDTO>> violations =
@@ -261,7 +272,8 @@ class RequestPostDTOTest {
                 "5 min",
                 true,
                 UUID.randomUUID(),
-                UUID.randomUUID()
+                UUID.randomUUID(),
+                new LinkedHashSet<>()
         );
 
         assertFalse(validator.validate(dto).isEmpty());
@@ -278,7 +290,8 @@ class RequestPostDTOTest {
                 "5 min",
                 true,
                 UUID.randomUUID(),
-                UUID.randomUUID()
+                UUID.randomUUID(),
+                new LinkedHashSet<>()
         );
 
         assertFalse(validator.validate(dto).isEmpty());
@@ -297,7 +310,8 @@ class RequestPostDTOTest {
                 "5 min",
                 true,
                 UUID.randomUUID(),
-                UUID.randomUUID()
+                UUID.randomUUID(),
+                new LinkedHashSet<>()
         );
 
         assertFalse(validator.validate(dto).isEmpty());
@@ -316,7 +330,8 @@ class RequestPostDTOTest {
                 readingTime,
                 true,
                 UUID.randomUUID(),
-                UUID.randomUUID()
+                UUID.randomUUID(),
+                new LinkedHashSet<>()
         );
 
         assertFalse(validator.validate(dto).isEmpty());
@@ -333,7 +348,8 @@ class RequestPostDTOTest {
                 "5 min",
                 true,
                 UUID.randomUUID(),
-                UUID.randomUUID()
+                UUID.randomUUID(),
+                new LinkedHashSet<>()
         );
 
         assertFalse(validator.validate(dto).isEmpty());

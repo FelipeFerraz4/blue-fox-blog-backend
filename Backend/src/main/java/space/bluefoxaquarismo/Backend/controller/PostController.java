@@ -31,6 +31,24 @@ public class PostController {
 
     private final PostService postService;
 
+    @GetMapping("/most-relevance")
+    @Operation(
+            summary = "Find most relevant posts",
+            description = "Find the most relevant posts up to a given limit"
+    )
+    @DefaultReadApiResponses
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Relevant posts found")
+            ,@ApiResponse(responseCode = "404", description = "No relevant posts found", content = @Content(
+                    schema = @Schema(implementation = ErrorResponseDTO.class)
+            ))
+    })
+    public List<ResultPostDTO> getMostRelevance(
+            @RequestParam @Parameter(description = "Limit of posts to return") int limit
+    ) {
+        return postService.findMostRelevant(limit);
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(

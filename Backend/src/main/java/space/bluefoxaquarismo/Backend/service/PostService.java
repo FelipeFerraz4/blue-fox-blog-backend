@@ -2,6 +2,8 @@ package space.bluefoxaquarismo.Backend.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import space.bluefoxaquarismo.Backend.config.tenant.TenantContext;
@@ -19,6 +21,8 @@ import space.bluefoxaquarismo.Backend.repository.CategoryRepository;
 import space.bluefoxaquarismo.Backend.repository.PostRepository;
 
 import java.time.OffsetDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,6 +36,29 @@ public class PostService {
     private final BlogRepository blogRepository;
     private final AuthorRepository authorRepository;
 
+    private static final double WEIGHT_VIEWS = 0.5;
+    private static final double WEIGHT_LIKES = 2.0;
+    private static final double WEIGHT_COMMENTS = 3.0;
+    private static final double DECAY_DAYS_PENALTY = 0.1;
+
+    /**
+     * Find the most relevant posts up to a given limit
+     * @param limit Limit of posts to return
+     * @return Post List limited by a variable, List<ResultPostDTO>
+     */
+    @Transactional(readOnly = true)
+    @Cacheable(value = "mostRelevantPosts", key = "#limit")
+    public List<ResultPostDTO> findMostRelevant(int limit) {
+        List<Post> posts = postRepository.findAllPublishedByStatusWithComments(Status.ACTIVE);
+        OffsetDateTime agora = OffsetDateTime.now();
+
+        return posts.stream()
+                .sorted(Comparator.comparingDouble((Post post) -> calculateRelevanceScore(post, agora)).reversed())
+                .limit(limit)
+                .map(postMapper::toResponseDTO)
+                .toList();
+    }
+
     /**
      * Creates a new post.
      *
@@ -39,6 +66,7 @@ public class PostService {
      * @return The created post, ResultPostDTO.
      */
     @Transactional
+    @CacheEvict(value = "mostRelevantPosts", allEntries = true)
     public ResultPostDTO create(RequestPostDTO postDTO) {
         validateSlug(postDTO.slug());
 
@@ -238,5 +266,55 @@ public class PostService {
         return postMapper.toResponseDTO(
                 postRepository.save(post)
         );
+    }
+
+    /**
+     * Calculates a post's relevance score based on a combination of active engagement,
+     * reach, and the time elapsed since publication (time-decay formula).
+     *
+     * @param post The post-entity for which the score is to be calculated.
+     * @param now The current reference time used to calculate the post's age.
+     * @return The final relevance score calculated for the post (higher values indicate greater relevance).
+     */
+    private double calculateRelevanceScore(Post post, OffsetDateTime now) {
+        double views = getSafeValue(post.getViews());
+        double likes = getSafeValue(post.getLikes());
+        double comments = getSafeValue(post.getCommentsCount());
+
+        long daysSincePublication = getDaysSincePublication(post.getPublishedAt(), now);
+
+        // Fórmula: (views * 0.5) + (likes * 2) + (comments * 3) - (dias * 0.1)
+        return (views * WEIGHT_VIEWS)
+                + (likes * WEIGHT_LIKES)
+                + (comments * WEIGHT_COMMENTS)
+                - (daysSincePublication * DECAY_DAYS_PENALTY);
+    }
+
+    /**
+     * Calculates the number of full days elapsed between the post's creation date
+     * and the current reference time, ensuring the value is never negative.
+     *
+     * @param publishedAt The post's published time (OffsetDateTime).
+     * @param now The current reference time.
+     * @return The number of days elapsed since publication, returning 0 if the
+     *         creation date is null or in the future.
+     */
+    private long getDaysSincePublication(OffsetDateTime publishedAt, OffsetDateTime now) {
+        if (publishedAt == null) {
+            return 0;
+        }
+        long dias = ChronoUnit.DAYS.between(publishedAt, now);
+        return Math.max(0, dias);
+    }
+
+    /**
+     * Safely converts integer-long post-metric values to double,
+     * preventing NullPointerExceptions if the field is not initialized.
+     *
+     * @param value The Long value to check (maybe null).
+     * @return The value converted to double, or 0.0 if the input parameter is null.
+     */
+    private double getSafeValue(Long value) {
+        return value != null ? value.doubleValue() : 0.0;
     }
 }

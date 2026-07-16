@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import space.bluefoxaquarismo.Backend.entity.Status;
 
 import java.time.OffsetDateTime;
+import java.util.LinkedHashSet;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,6 +38,8 @@ class ResultPostDTOTest {
                 Status.ACTIVE,
                 publishedAt,
                 1250L,
+                12L,
+                new LinkedHashSet<>(),
                 createdAt,
                 updatedAt
         );

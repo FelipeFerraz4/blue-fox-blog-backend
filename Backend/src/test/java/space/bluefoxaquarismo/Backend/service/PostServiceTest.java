@@ -23,6 +23,7 @@ import space.bluefoxaquarismo.Backend.repository.CategoryRepository;
 import space.bluefoxaquarismo.Backend.repository.PostRepository;
 
 import java.time.OffsetDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -102,7 +103,8 @@ class PostServiceTest {
                 "5 min",
                 false,
                 categoryId,
-                authorId
+                authorId,
+                new LinkedHashSet<>()
         );
 
         responseDTO = new ResultPostDTO(
@@ -120,6 +122,8 @@ class PostServiceTest {
                 Status.ACTIVE,
                 null,
                 0L,
+                0L,
+                new LinkedHashSet<>(),
                 null,
                 null
         );
@@ -232,7 +236,8 @@ class PostServiceTest {
                     "5 min",
                     true,
                     categoryId,
-                    authorId
+                    authorId,
+                    new LinkedHashSet<>()
             );
 
             post.setPublished(true);
@@ -407,7 +412,8 @@ class PostServiceTest {
                 "10 min",
                 false,
                 categoryId,
-                authorId
+                authorId,
+                new LinkedHashSet<>()
         );
 
         when(postRepository.findPostWithRelationsById(postId))
@@ -507,7 +513,8 @@ class PostServiceTest {
                 requestDTO.readingTime(),
                 true,
                 categoryId,
-                authorId
+                authorId,
+                new LinkedHashSet<>()
         );
 
         when(postRepository.findPostWithRelationsById(postId))
@@ -545,7 +552,8 @@ class PostServiceTest {
                 requestDTO.readingTime(),
                 false,
                 categoryId,
-                authorId
+                authorId,
+                new LinkedHashSet<>()
         );
 
         when(postRepository.findPostWithRelationsById(postId))

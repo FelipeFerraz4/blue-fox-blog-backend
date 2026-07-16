@@ -23,6 +23,17 @@ import java.util.UUID;
 public interface PostRepository extends JpaRepository<Post, UUID> {
 
     /**
+     * Finds all active and published posts with their respective comments, author,
+     * category, and recommended post IDs pre-loaded.
+     *
+     * @param status The status of the posts to find (usually Status.ACTIVE).
+     * @return A {@link List} of published posts with their relations initialized.
+     */
+    @EntityGraph(attributePaths = {"category", "author", "comments", "recommendedPostIds"})
+    @Query("select distinct p from Post p where p.status = :status and p.published = true")
+    List<Post> findAllPublishedByStatusWithComments(Status status);
+
+    /**
      * Finds a post by id with relation.
      *
      * @param id The unique id of the post to find.

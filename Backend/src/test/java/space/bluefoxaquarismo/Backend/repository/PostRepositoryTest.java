@@ -32,12 +32,16 @@ class PostRepositoryTest extends AbstractIntegrationTest {
     @Autowired
     private BlogRepository blogRepository;
 
+    @Autowired
+    private CommentRepository commentRepository;
+
     private Author defaultAuthor;
     private Category defaultCategory;
     private Blog defaultBlog;
 
     @BeforeEach
     void setUp() {
+        commentRepository.deleteAll();
         postRepository.deleteAll();
         categoryRepository.deleteAll();
         authorRepository.deleteAll();
@@ -88,6 +92,8 @@ class PostRepositoryTest extends AbstractIntegrationTest {
                 .category(defaultCategory)
                 .status(Status.ACTIVE)
                 .published(true)
+                .views(0L)
+                .likes(0L)
                 .build();
         postRepository.save(post);
 
@@ -117,6 +123,8 @@ class PostRepositoryTest extends AbstractIntegrationTest {
                 .author(defaultAuthor)
                 .category(defaultCategory)
                 .status(Status.ACTIVE)
+                .views(0L)
+                .likes(0L)
                 .build();
         postRepository.save(post);
 
@@ -144,6 +152,8 @@ class PostRepositoryTest extends AbstractIntegrationTest {
                 .author(defaultAuthor)
                 .category(defaultCategory)
                 .status(Status.ACTIVE)
+                .views(0L)
+                .likes(0L)
                 .build();
 
         Post inactivePost = Post.builder()
@@ -154,6 +164,8 @@ class PostRepositoryTest extends AbstractIntegrationTest {
                 .author(defaultAuthor)
                 .category(defaultCategory)
                 .status(Status.INACTIVE)
+                .views(0L)
+                .likes(0L)
                 .build();
 
         postRepository.saveAll(List.of(activePost, inactivePost));
@@ -179,6 +191,8 @@ class PostRepositoryTest extends AbstractIntegrationTest {
                 .category(defaultCategory)
                 .status(Status.ACTIVE)
                 .published(true)
+                .views(0L)
+                .likes(0L)
                 .build();
 
         Post draftPost = Post.builder()
@@ -190,6 +204,8 @@ class PostRepositoryTest extends AbstractIntegrationTest {
                 .category(defaultCategory)
                 .status(Status.ACTIVE)
                 .published(false)
+                .views(0L)
+                .likes(0L)
                 .build();
 
         postRepository.saveAll(List.of(publicPost, draftPost));
@@ -213,6 +229,8 @@ class PostRepositoryTest extends AbstractIntegrationTest {
                 .author(defaultAuthor)
                 .category(defaultCategory)
                 .status(Status.ACTIVE)
+                .views(0L)
+                .likes(0L)
                 .build();
         postRepository.save(post);
 
@@ -235,6 +253,8 @@ class PostRepositoryTest extends AbstractIntegrationTest {
                 .author(defaultAuthor)
                 .category(defaultCategory)
                 .status(Status.ACTIVE)
+                .views(0L)
+                .likes(0L)
                 .build();
         postRepository.save(post);
 
@@ -258,6 +278,8 @@ class PostRepositoryTest extends AbstractIntegrationTest {
                 .category(defaultCategory)
                 .status(Status.ACTIVE)
                 .published(true)
+                .views(0L)
+                .likes(0L)
                 .build();
 
         Post ignoredPost = Post.builder()
@@ -269,6 +291,8 @@ class PostRepositoryTest extends AbstractIntegrationTest {
                 .category(defaultCategory)
                 .status(Status.DELETED)
                 .published(true)
+                .views(0L)
+                .likes(0L)
                 .build();
 
         postRepository.saveAll(List.of(targetPost, ignoredPost));

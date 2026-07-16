@@ -4,6 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.OffsetDateTime;
+import java.util.LinkedHashSet;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -57,8 +58,11 @@ public class PostTest {
                 Status.ACTIVE,
                 publishedAt,
                 1250L,
+                120L,
+                new LinkedHashSet<>(),
                 mockAuthor,
                 mockCategory,
+                new LinkedHashSet<>(),
                 createdAt,
                 updatedAt
         );

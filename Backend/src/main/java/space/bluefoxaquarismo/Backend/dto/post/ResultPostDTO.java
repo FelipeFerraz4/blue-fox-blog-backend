@@ -5,6 +5,8 @@ import jakarta.validation.constraints.*;
 import space.bluefoxaquarismo.Backend.entity.Status;
 
 import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Schema(description = "Post response object")
@@ -109,6 +111,20 @@ public record ResultPostDTO(
         )
         @NotNull
         Long views,
+
+        @Schema(
+                description = "Total number of views this post has received",
+                example = "120"
+        )
+        @NotNull
+        Long likes,
+
+        @Schema(
+                description = "The list of unique identifier of recommended posts this post belongs to",
+                example = "g47ac10b-58cc-4372-a567-0e02b2c3d478"
+        )
+        @NotNull(message = "Recommended post IDs cannot be null")
+        Set<UUID> recommendedPostIds,
 
         @Schema(
                 description = "Date and time the post was created",

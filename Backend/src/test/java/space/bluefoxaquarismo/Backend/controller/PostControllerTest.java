@@ -14,6 +14,7 @@ import space.bluefoxaquarismo.Backend.entity.Status;
 import space.bluefoxaquarismo.Backend.service.PostService;
 
 import java.time.OffsetDateTime;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -49,7 +50,8 @@ public class PostControllerTest {
                 "5 min",
                 true,
                 categoryId,
-                authorId
+                authorId,
+                new LinkedHashSet<>()
         );
 
         responseDTO = new ResultPostDTO(
@@ -67,6 +69,8 @@ public class PostControllerTest {
                 Status.ACTIVE,
                 now,
                 150L,
+                12L,
+                new LinkedHashSet<>(),
                 now,
                 now
         );
