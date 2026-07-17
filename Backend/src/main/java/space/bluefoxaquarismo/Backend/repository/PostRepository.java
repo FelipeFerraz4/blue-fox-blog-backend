@@ -3,12 +3,14 @@ package space.bluefoxaquarismo.Backend.repository;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import space.bluefoxaquarismo.Backend.entity.Post;
 import space.bluefoxaquarismo.Backend.entity.Status;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -23,10 +25,21 @@ import java.util.UUID;
 public interface PostRepository extends JpaRepository<Post, UUID> {
 
     /**
-     * Finds all active and published posts with their respective comments, author,
-     * category, and recommended post IDs pre-loaded.
+     * Finds all active and published posts with their respective relations preloaded,
+     * ordered by the most recently published.
      *
-     * @param status The status of the posts to find (usually Status.ACTIVE).
+     * @param status The lifecycle status of the posts (usually Status with ACTIVE).
+     * @return A {@link List} of published posts sorted by publication date.
+     */
+    @EntityGraph(attributePaths = {"category", "author"})
+    @Query("select distinct p from Post p where p.status = :status and p.published = true order by p.publishedAt desc")
+    List<Post> findAllPublishedByStatusOrderByPublishedAtDesc(Status status);
+
+    /**
+     * Finds all active and published posts with their respective comments, author,
+     * category, and recommended post-IDs preloaded.
+     *
+     * @param status The status of the posts to find.
      * @return A {@link List} of published posts with their relations initialized.
      */
     @EntityGraph(attributePaths = {"category", "author", "comments", "recommendedPostIds"})
@@ -51,14 +64,46 @@ public interface PostRepository extends JpaRepository<Post, UUID> {
     @EntityGraph(attributePaths = {"category", "author"})
     @Query("select p from Post p")
     List<Post> findAllWithRelations();
+
     /**
      * Finds a post by its unique, SEO-friendly slug.
      *
      * @param slug The unique slug of the post to find.
      * @return An {@link Optional} containing the found post, or an empty {@link Optional} if not found.
      */
-    @EntityGraph(attributePaths = {"category", "author"})
+    @EntityGraph(attributePaths = {"category", "author", "recommendedPostIds"})
     Optional<Post> findBySlug(String slug);
+
+    /**
+     * Finds all active and published posts by a set of IDs,
+     * preloading category and author to ensure high performance.
+     *
+     * @param ids The Set of UUIDs of the posts to find.
+     * @return A {@link List} of published posts.
+     */
+    @EntityGraph(attributePaths = {"category", "author"})
+    @Query("select distinct p from Post p where p.id in :ids and p.status = 'ACTIVE' and p.published = true")
+    List<Post> findAllPublishedByIds(@Param("ids") Set<UUID> ids);
+
+    /**
+     * Finds all active and published posts of a specific category.
+     *
+     * @param categoryId The unique identifier of the category.
+     * @return A {@link List} of published posts.
+     */
+    @EntityGraph(attributePaths = {"category", "author", "comments", "recommendedPostIds"})
+    @Query("select distinct p from Post p where p.category.id = :categoryId and p.status = 'ACTIVE' and p.published = true order by p.publishedAt desc")
+    List<Post> findLatestPublishedByCategoryId(UUID categoryId);
+
+    /**
+     * Finds all active and published posts published before a specific date.
+     *
+     * @param publishedAt The threshold publication date.
+     * @return A {@link List} of published posts.
+     */
+    @EntityGraph(attributePaths = {"category", "author", "comments", "recommendedPostIds"})
+    @Query("select distinct p from Post p where p.status = 'ACTIVE' and p.published = true and p.publishedAt < :publishedAt order by p.publishedAt desc")
+    List<Post> findPublishedBefore(java.time.OffsetDateTime publishedAt);
 
     /**
      * Checks if a post with the given slug exists.

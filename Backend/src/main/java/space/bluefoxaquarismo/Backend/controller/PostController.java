@@ -31,6 +31,40 @@ public class PostController {
 
     private final PostService postService;
 
+    @GetMapping("/last-post")
+    @Operation(
+            summary = "Get last published post",
+            description = "Retrieves the most recently published post"
+    )
+    @DefaultReadApiResponses
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Last post of the blog")
+            ,@ApiResponse(responseCode = "404", description = "No posts found", content = @Content(
+            schema = @Schema(implementation = ErrorResponseDTO.class)
+    ))
+    })
+    public ResultPostDTO getLastPost() {
+        return postService.findLatestPosts(1).getFirst();
+    }
+
+    @GetMapping("/latest")
+    @Operation(
+            summary = "Get latest published posts",
+            description = "Retrieves a list of the most recently published posts, up to an optional limit."
+    )
+    @DefaultReadApiResponses
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lastest posts of the blog")
+            ,@ApiResponse(responseCode = "404", description = "No posts found", content = @Content(
+                    schema = @Schema(implementation = ErrorResponseDTO.class)
+            ))
+    })
+    public List<ResultPostDTO> getLatestPosts(
+            @RequestParam @Parameter(description = "Limit of posts to return") int limit
+    ) {
+        return postService.findLatestPosts(limit);
+    }
+
     @GetMapping("/most-relevance")
     @Operation(
             summary = "Find most relevant posts",
@@ -81,6 +115,36 @@ public class PostController {
     public ResultPostDTO findById(
             @PathVariable @Parameter(description = "Post id") UUID id) {
         return postService.findById(id);
+    }
+
+    @GetMapping("/recommended-posts/{slug}")
+    @Operation(
+            summary = "Get recommended posts by slug",
+            description = "Retrieves the detailed list of recommended posts associated with the post identified by the given slug."
+    )
+    @DefaultReadApiResponses
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Post found"),
+            @ApiResponse(responseCode = "404", description = "Post not found", content = @Content(
+                    schema = @Schema(implementation = ErrorResponseDTO.class)
+            ))
+    })
+    public List<ResultPostDTO> getRecommendedPosts(@PathVariable("slug") String slug) {
+        return postService.findRecommendedPosts(slug);
+    }
+
+    @GetMapping("/next-posts/{slug}")
+    @Operation(summary = "Find next sequential posts", description = "Find up to 6 unique posts related dynamically by category, chronology, and fallback rules")
+    @DefaultReadApiResponses
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Sequential posts found"),
+            @ApiResponse(responseCode = "404", description = "Current post not found", content = @Content(
+                    schema = @Schema(implementation = ErrorResponseDTO.class)
+            ))
+    })
+    public List<ResultPostDTO> getNextPosts(
+            @PathVariable @Parameter(description = "Current post slug") String slug) {
+        return postService.findNextPosts(slug, 6);
     }
 
     @GetMapping("/slug/{slug}")

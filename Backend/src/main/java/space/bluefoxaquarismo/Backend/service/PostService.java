@@ -22,9 +22,7 @@ import space.bluefoxaquarismo.Backend.repository.PostRepository;
 
 import java.time.OffsetDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +38,100 @@ public class PostService {
     private static final double WEIGHT_LIKES = 2.0;
     private static final double WEIGHT_COMMENTS = 3.0;
     private static final double DECAY_DAYS_PENALTY = 0.1;
+
+    /**
+     * Finds the next sequence of posts based on a current post's slug,
+     * excluding its manual recommended posts to prevent duplicate content on UI.
+     *
+     * @param slug Current post slug.
+     * @param limit Maximum number of posts to return.
+     * @return A {@link List} of next posts as {@link ResultPostDTO}.
+     */
+    @Transactional(readOnly = true)
+    public List<ResultPostDTO> findNextPosts(String slug, int limit) {
+        Post currentPost = postRepository.findBySlug(slug)
+                .orElseThrow(() -> new PostNotFoundException("slug", slug));
+
+        UUID currentPostId = currentPost.getId();
+        UUID categoryId = currentPost.getCategory().getId();
+        OffsetDateTime publishedAt = currentPost.getPublishedAt();
+
+        Set<UUID> excludedRecommendedIds = currentPost.getRecommendedPostIds() != null
+                ? currentPost.getRecommendedPostIds()
+                : Set.of();
+
+        Set<Post> nextPostsSet = new LinkedHashSet<>();
+
+        List<Post> sameCategoryPosts = postRepository.findLatestPublishedByCategoryId(categoryId);
+        sameCategoryPosts.stream()
+                .filter(p -> !p.getId().equals(currentPostId))
+                .filter(p -> !excludedRecommendedIds.contains(p.getId()))
+                .limit(2)
+                .forEach(nextPostsSet::add);
+
+        if (publishedAt != null) {
+            List<Post> olderPosts = postRepository.findPublishedBefore(publishedAt);
+            olderPosts.stream()
+                    .filter(p -> !p.getId().equals(currentPostId))
+                    .filter(p -> !excludedRecommendedIds.contains(p.getId()))
+                    .filter(p -> !nextPostsSet.contains(p))
+                    .limit(2)
+                    .forEach(nextPostsSet::add);
+        }
+
+        if (nextPostsSet.size() < limit) {
+            List<Post> generalLatest = postRepository.findAllPublishedByStatusOrderByPublishedAtDesc(Status.ACTIVE);
+            generalLatest.stream()
+                    .filter(p -> !p.getId().equals(currentPostId))
+                    .filter(p -> !excludedRecommendedIds.contains(p.getId()))
+                    .filter(p -> !nextPostsSet.contains(p))
+                    .limit((long) limit - nextPostsSet.size())
+                    .forEach(nextPostsSet::add);
+        }
+
+        return nextPostsSet.stream()
+                .map(postMapper::toResponseDTO)
+                .toList();
+    }
+
+    /**
+     * Retrieves the recommended posts for a given post-slug.
+     * Uses the preloaded recommendedPostIds of the post-entity.
+     *
+     * @param slug The slug of the post.
+     * @return A {@link List} of {@link ResultPostDTO} representing the recommended posts.
+     */
+    @Transactional(readOnly = true)
+    public List<ResultPostDTO> findRecommendedPosts(String slug) {
+        Post post = postRepository.findBySlug(slug)
+                .orElseThrow(() -> new PostNotFoundException("slug", slug));
+
+        Set<UUID> recommendedIds = post.getRecommendedPostIds();
+        if (recommendedIds == null || recommendedIds.isEmpty()) {
+            return List.of();
+        }
+
+        return postRepository.findAllPublishedByIds(recommendedIds)
+                .stream()
+                .map(postMapper::toResponseDTO)
+                .toList();
+    }
+
+    /**
+     * Retrieves the latest published posts up to a given limit.
+     *
+     * @param limit The maximum number of posts to return.
+     * @return A {@link List} of {@link ResultPostDTO} representing the latest posts.
+     */
+    @Transactional(readOnly = true)
+    public List<ResultPostDTO> findLatestPosts(int limit) {
+        List<Post> posts = postRepository.findAllPublishedByStatusOrderByPublishedAtDesc(Status.ACTIVE);
+
+        return posts.stream()
+                .limit(limit)
+                .map(postMapper::toResponseDTO)
+                .toList();
+    }
 
     /**
      * Find the most relevant posts up to a given limit
