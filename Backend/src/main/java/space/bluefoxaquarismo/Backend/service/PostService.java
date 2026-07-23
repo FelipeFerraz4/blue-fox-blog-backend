@@ -290,6 +290,19 @@ public class PostService {
     }
 
     /**
+     * Increment the view counter of a post.
+     *
+     * @param slug Post slug
+     */
+    @Transactional
+    public void incrementViews(String slug) {
+        Post post = postRepository.findBySlug(slug)
+                .orElseThrow(() -> new PostNotFoundException("slug", slug));
+        post.setViews(post.getViews() + 1);
+        postRepository.save(post);
+    }
+
+    /**
      * SoftDelete an existing post.
      *
      * @param id Post id

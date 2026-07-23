@@ -240,6 +240,20 @@ public class PostController {
         postService.incrementViews(id);
     }
 
+    @PatchMapping("/views/{slug}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(summary = "Increment post views", description = "Increment the view counter of a post by slug")
+    @DefaultApiResponses
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Post view incremented successfully"),
+            @ApiResponse(responseCode = "404", description = "Post not found", content = @Content(
+                    schema = @Schema(implementation = ErrorResponseDTO.class)
+            ))
+    })
+    public void incrementViews(@PathVariable @Parameter(description = "Post slug") String slug) {
+        postService.incrementViews(slug);
+    }
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Soft delete post", description = "Soft delete a post")
     @ResponseStatus(HttpStatus.NO_CONTENT)
