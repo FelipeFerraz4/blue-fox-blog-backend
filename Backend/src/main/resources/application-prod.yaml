@@ -28,6 +28,12 @@ spring:
     locations: classpath:db/migration
     clean-disabled: true
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:https://sso.bluefoxglobalgroup.com/auth/realms/Blue_Fox_Global_Group}
+
   springdoc:
     api-docs:
       enabled: false

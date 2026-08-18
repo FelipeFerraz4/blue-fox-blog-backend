@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import space.bluefoxaquarismo.Backend.documentation.DefaultApiResponses;
 import space.bluefoxaquarismo.Backend.documentation.DefaultReadApiResponses;
@@ -33,6 +34,7 @@ public class CategoryController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('ADMIN', 'AQUARISM_EDITORS')")
     @Operation(
             summary = "Create a new category",
             description = "Create a new category with the provided data"
@@ -122,6 +124,7 @@ public class CategoryController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'AQUARISM_EDITORS')")
     @Operation(summary = "Update an existing category", description = "Update an existing category with the provided data")
     @DefaultApiResponses
     @ApiResponses({
@@ -141,6 +144,7 @@ public class CategoryController {
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'AQUARISM_EDITORS')")
     @Operation(summary = "Update category status", description = "Update the status of a category")
     @DefaultApiResponses
     @ApiResponses({
@@ -157,6 +161,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Soft delete category", description = "Soft delete a category")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DefaultReadApiResponses
@@ -173,6 +178,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/hard/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Hard delete category", description = "Hard delete a category")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DefaultReadApiResponses

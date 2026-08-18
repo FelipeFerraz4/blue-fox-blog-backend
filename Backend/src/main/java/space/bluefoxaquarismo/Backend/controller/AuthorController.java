@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import space.bluefoxaquarismo.Backend.documentation.DefaultApiResponses;
 import space.bluefoxaquarismo.Backend.documentation.DefaultReadApiResponses;
@@ -33,6 +34,7 @@ public class AuthorController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyRole('ADMIN', 'AQUARISM_EDITORS')")
     @Operation(
             summary = "Create a new author",
             description = "Create a new author with the provided data"
@@ -135,6 +137,7 @@ public class AuthorController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'AQUARISM_EDITORS')")
     @Operation(summary = "Update an existing author", description = "Update an existing author with the provided data")
     @DefaultApiResponses
     @ApiResponses({
@@ -154,6 +157,7 @@ public class AuthorController {
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ADMIN', 'AQUARISM_EDITORS')")
     @Operation(summary = "Update author status", description = "Update the status of an author")
     @DefaultApiResponses
     @ApiResponses({
@@ -170,6 +174,7 @@ public class AuthorController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Soft delete author", description = "Soft delete an author")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DefaultReadApiResponses
@@ -186,6 +191,7 @@ public class AuthorController {
     }
 
     @DeleteMapping("/hard/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Hard delete author", description = "Hard delete an author")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DefaultReadApiResponses
