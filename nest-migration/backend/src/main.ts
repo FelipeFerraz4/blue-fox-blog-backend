@@ -1,8 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { ValidationPipe, Logger } from '@nestjs/common';
+import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
+import { AppLoggerService } from './common/logger/app-logger.service';
 
 // Polyfill para serialização segura de BigInt do Prisma para JSON
 (BigInt.prototype as any).toJSON = function () {
@@ -10,8 +11,10 @@ import cookieParser from 'cookie-parser';
 };
 
 async function bootstrap() {
-  const logger = new Logger('Bootstrap');
-  const app = await NestFactory.create(AppModule);
+  const appLogger = new AppLoggerService();
+  const app = await NestFactory.create(AppModule, {
+    logger: appLogger,
+  });
 
   // Cookie parser para suporte ao transporte via cookies
   app.use(cookieParser());
@@ -72,12 +75,12 @@ async function bootstrap() {
     SwaggerModule.setup('api/docs', app, document, {
       customSiteTitle: 'Blue Fox Blog API Docs',
     });
-    logger.log('📄 Swagger UI disponível em: /api/docs');
+    appLogger.log('📄 Swagger UI disponível em: /api/docs', 'Bootstrap');
   }
 
   const port = process.env.BACKEND_PORT || process.env.PORT || 3000;
   await app.listen(port);
-  logger.log(`🚀 Blue Fox Blog API rodando em http://localhost:${port}/api`);
+  appLogger.log(`🚀 Blue Fox Blog API rodando em http://localhost:${port}/api`, 'Bootstrap');
 }
 
 bootstrap();
