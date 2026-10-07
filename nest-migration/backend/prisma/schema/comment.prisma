@@ -1,0 +1,19 @@
+model Comment {
+  id         String   @id @default(uuid()) @db.Uuid
+  blogId     String   @map("blog_id") @db.Uuid
+  postId     String   @map("post_id") @db.Uuid
+  content    String   @db.Text
+  authorName String   @map("author_name") @db.VarChar(255)
+  status     Status   @default(ACTIVE)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  blog Blog @relation(fields: [blogId], references: [id], onDelete: Restrict)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId], map: "idx_comments_post_id")
+  @@index([blogId], map: "idx_comments_blog_id")
+  @@index([status], map: "idx_comments_status")
+  @@index([createdAt(sort: Desc)], map: "idx_comments_created_at")
+  @@map("comments")
+}

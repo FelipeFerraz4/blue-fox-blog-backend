@@ -1,0 +1,15 @@
+model Category {
+  id          String    @id @default(uuid()) @db.Uuid
+  blogId      String    @map("blog_id") @db.Uuid
+  name        String    @db.VarChar(255)
+  description String    @db.Text
+  slug        String    @unique @db.VarChar(255)
+  status      Status    @default(ACTIVE)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  blog  Blog   @relation(fields: [blogId], references: [id], onDelete: Restrict)
+  posts Post[]
+
+  @@map("categories")
+}
