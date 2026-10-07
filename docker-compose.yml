@@ -27,7 +27,7 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: ${NODE_ENV:-development}
-      PORT: ${BACKEND_PORT:-8081}
+      PORT: ${PORT:-8081}
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: ${DB_NAME:-blog_db}
@@ -39,7 +39,7 @@ services:
     volumes:
       - blog-logs:/app/logs
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:${BACKEND_PORT:-8081}/api/health || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:${PORT:-8081}/api/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 3
