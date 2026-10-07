@@ -71,7 +71,14 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.
   - Winston Logger configurado com `winston-daily-rotate-file` particionando logs em subpastas por data (`logs/YYYY-MM-DD/app.log`, `logs/YYYY-MM-DD/error.log` e `logs/YYYY-MM-DD/actions.log`).
   - `ActionAuditLogInterceptor` global gravando método, rota, tenant, IP, latência e usuário em `actions.log`.
   - Health check HTTP configurado no `docker-compose.yml`.
-- [ ] **Fase 4: Multi-tenancy Híbrido (Header + Cookie) e Segurança Keycloak**
+- [x] **Fase 4: Multi-tenancy Híbrido (Header + Cookie) e Segurança Keycloak**
+  - `TenantContext` com `AsyncLocalStorage` garantindo isolamento concorrente do `blogId`.
+  - `TenantMiddleware` híbrido com suporte ao header `X-Blog-ID` e cookie `blog_id`, validação de UUID e fallback para o blog padrão.
+  - Decorator `@CurrentTenant()` para injeção limpa nos controllers.
+  - `JwtStrategy` com `jwks-rsa` validando tokens emitidos pelo Keycloak (`KEYCLOAK_ISSUER_URI`) e extraindo roles do `realm_access.roles`.
+  - `JwtAuthGuard` global com suporte ao decorator `@Public()` e autenticação opcional.
+  - `RolesGuard` global com suporte ao decorator `@Roles('ADMIN', 'AQUARISM_EDITORS')`.
+  - Decorator `@CurrentUser()` para acesso ao payload do usuário autenticado.
 - [ ] **Fase 5: Migração dos Módulos de Domínio (Categories, Authors, Posts, Comments, Blogs)**
 - [ ] **Fase 6: Documentação OpenAPI / Swagger Interativo**
 - [ ] **Fase 7: Validação, Testes Automatizados e Cutover**

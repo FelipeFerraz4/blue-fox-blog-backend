@@ -2,8 +2,10 @@ import { Controller, Get } from '@nestjs/common';
 import { HealthCheck, HealthCheckService, MemoryHealthIndicator } from '@nestjs/terminus';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { PrismaHealthIndicator } from './prisma.health';
+import { Public } from '../auth/public.decorator';
 
 @ApiTags('Health')
+@Public()
 @Controller('health')
 export class HealthController {
   constructor(
