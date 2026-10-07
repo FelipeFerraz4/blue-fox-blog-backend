@@ -1,0 +1,45 @@
+model Post {
+  id          String    @id @default(uuid()) @db.Uuid
+  blogId      String    @map("blog_id") @db.Uuid
+  authorId    String    @map("author_id") @db.Uuid
+  categoryId  String    @map("category_id") @db.Uuid
+  title       String    @db.VarChar(255)
+  description String    @db.VarChar(160)
+  imageUrl    String?   @map("image_url") @db.VarChar(255)
+  slug        String    @unique @db.VarChar(255)
+  readingTime String?   @map("reading_time") @db.VarChar(255)
+  published   Boolean   @default(false)
+  status      Status    @default(ACTIVE)
+  publishedAt DateTime? @map("published_at") @db.Timestamptz(6)
+  views       BigInt    @default(0)
+  likes       BigInt    @default(0)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  blog     Blog     @relation(fields: [blogId], references: [id], onDelete: Restrict)
+  author   Author   @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  comments Comment[]
+
+  // Recomendações de posts (relação auto-referencial M:N via post_recommendations)
+  recommendationsPost PostRecommendation[] @relation("SourcePost")
+  recommendedByPost   PostRecommendation[] @relation("TargetPost")
+
+  @@index([slug], map: "idx_posts_slug")
+  @@index([status], map: "idx_posts_status")
+  @@index([createdAt(sort: Desc)], map: "idx_posts_created_at")
+  @@map("posts")
+}
+
+model PostRecommendation {
+  postId            String @map("post_id") @db.Uuid
+  recommendedPostId String @map("recommended_post_id") @db.Uuid
+
+  post            Post @relation("SourcePost", fields: [postId], references: [id], onDelete: Cascade)
+  recommendedPost Post @relation("TargetPost", fields: [recommendedPostId], references: [id], onDelete: Cascade)
+
+  @@id([postId, recommendedPostId], map: "pk_post_recommendations")
+  @@index([postId], map: "idx_post_recommendations_post_id")
+  @@map("post_recommendations")
+}
