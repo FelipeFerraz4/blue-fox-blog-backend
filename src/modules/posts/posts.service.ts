@@ -56,6 +56,8 @@ export class PostsService {
     const { recommendationsPost, _count, ...rest } = post;
     return {
       ...rest,
+      authorName: post.author?.name ?? '',
+      categoryName: post.category?.name ?? '',
       commentsCount: _count ? _count.comments : 0,
       recommendedPostIds,
     };
