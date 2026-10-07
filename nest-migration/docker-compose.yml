@@ -1,0 +1,56 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: blog-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-blog_db}
+    volumes:
+      - blog-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-blog_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - blog-db-net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: blog-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: ${BACKEND_PORT:-3000}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-blog_db}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-blog_db}?schema=public
+      KEYCLOAK_ISSUER_URI: ${KEYCLOAK_ISSUER_URI}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
+    volumes:
+      - blog-logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - blog-db-net
+      - blog-api-net
+
+networks:
+  blog-db-net:
+    driver: bridge
+
+  blog-api-net:
+    driver: bridge
+
+volumes:
+  blog-db-data:
+  blog-logs:
