@@ -1,12 +1,19 @@
 services:
   postgres:
-    env_file:
-      - .env.dev
     ports:
       - "${DB_PORT:-5432}:5432"
 
   backend:
-    env_file:
-      - .env.dev
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: npm run start:dev
+    environment:
+      NODE_ENV: development
+      SWAGGER_ENABLED: "true"
     ports:
-      - "${BACKEND_PORT:-8081}:8080"
+      - "${BACKEND_PORT:-8081}:${BACKEND_PORT:-8081}"
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/prisma:/app/prisma
+      - ./backend/logs:/app/logs
