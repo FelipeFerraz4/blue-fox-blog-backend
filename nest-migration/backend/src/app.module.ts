@@ -1,11 +1,12 @@
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
-import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
+import { APP_INTERCEPTOR, APP_GUARD, APP_FILTER } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { loadEnvConfig } from './config/env.config';
 import { PrismaModule } from './prisma/prisma.module';
 import { HealthModule } from './modules/health/health.module';
 import { LoggerModule } from './common/logger/logger.module';
 import { ActionAuditLogInterceptor } from './common/interceptors/action-audit-log.interceptor';
+import { GlobalHttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TenantModule } from './modules/tenant/tenant.module';
 import { TenantMiddleware } from './modules/tenant/tenant.middleware';
 import { AuthModule } from './modules/auth/auth.module';
@@ -37,6 +38,10 @@ import { BlogsModule } from './modules/blogs/blogs.module';
   ],
   controllers: [],
   providers: [
+    {
+      provide: APP_FILTER,
+      useClass: GlobalHttpExceptionFilter,
+    },
     {
       provide: APP_INTERCEPTOR,
       useClass: ActionAuditLogInterceptor,
