@@ -79,6 +79,11 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.
   - `JwtAuthGuard` global com suporte ao decorator `@Public()` e autenticação opcional.
   - `RolesGuard` global com suporte ao decorator `@Roles('ADMIN', 'AQUARISM_EDITORS')`.
   - Decorator `@CurrentUser()` para acesso ao payload do usuário autenticado.
-- [ ] **Fase 5: Migração dos Módulos de Domínio (Categories, Authors, Posts, Comments, Blogs)**
+- [x] **Fase 5: Migração dos Módulos de Domínio (Categories, Authors, Posts, Comments, Blogs)**
+  - Módulo **Categories**: CRUD completo, endpoints de busca por slug/nome/status, soft/hard delete, DTOs e validação de slugify.
+  - Módulo **Authors**: CRUD completo, busca por slug/email/nome/status, soft/hard delete, DTOs e validação de unicidade de email/slug.
+  - Módulo **Posts**: CRUD completo, busca de `last-post`, `latest`, `most-relevance` (cálculo de score ponderado por views, likes, comentários e tempo), `recommended-posts` e `next-posts` (algoritmo sequencial inteligente), incrementadores de visualização (incluindo público por slug).
+  - Módulo **Comments**: Criação pública por leitores, listagem por post e endpoints protegidos de moderação de status e exclusão.
+  - Módulo **Blogs**: Consulta pública do blog corrente via multi-tenant e listagem por slug.
 - [ ] **Fase 6: Documentação OpenAPI / Swagger Interativo**
 - [ ] **Fase 7: Validação, Testes Automatizados e Cutover**
