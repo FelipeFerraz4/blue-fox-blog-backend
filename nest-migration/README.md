@@ -66,7 +66,11 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.
   - Seeds modulares implementados (`seedBlogs`, `seedAuthors`, `seedCategories`, `seedPosts` com recomendações M:N).
   - Polyfill global de serialização de BigInt para JSON.
   - Prisma Client gerado e build compilado com sucesso.
-- [ ] **Fase 3: Logs Locais em Subpastas por Data e Health Check**
+- [x] **Fase 3: Logs Locais em Subpastas por Data e Health Check**
+  - Módulo de Health Check (`@nestjs/terminus`) com checagem ativa do Prisma (`PrismaHealthIndicator`) e limites de memória (Heap/RSS).
+  - Winston Logger configurado com `winston-daily-rotate-file` particionando logs em subpastas por data (`logs/YYYY-MM-DD/app.log`, `logs/YYYY-MM-DD/error.log` e `logs/YYYY-MM-DD/actions.log`).
+  - `ActionAuditLogInterceptor` global gravando método, rota, tenant, IP, latência e usuário em `actions.log`.
+  - Health check HTTP configurado no `docker-compose.yml`.
 - [ ] **Fase 4: Multi-tenancy Híbrido (Header + Cookie) e Segurança Keycloak**
 - [ ] **Fase 5: Migração dos Módulos de Domínio (Categories, Authors, Posts, Comments, Blogs)**
 - [ ] **Fase 6: Documentação OpenAPI / Swagger Interativo**
