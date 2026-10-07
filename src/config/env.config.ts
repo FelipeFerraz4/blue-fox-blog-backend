@@ -9,7 +9,7 @@ export interface EnvConfig {
 
 export const loadEnvConfig = (): EnvConfig => {
   const nodeEnv = process.env.NODE_ENV || 'development';
-  const port = parseInt(process.env.BACKEND_PORT || process.env.PORT || '3000', 10);
+  const port = parseInt(process.env.BACKEND_PORT || process.env.PORT || '8081', 10);
 
   // Computar DATABASE_URL se variáveis individuais foram fornecidas
   let databaseUrl = process.env.DATABASE_URL;

@@ -90,7 +90,7 @@ async function bootstrap() {
     appLogger.log('📄 Swagger documentation available at: /api/docs', 'Bootstrap');
   }
 
-  const port = process.env.BACKEND_PORT || process.env.PORT || 3000;
+  const port = process.env.BACKEND_PORT || process.env.PORT || 8081;
   await app.listen(port);
   appLogger.log(`🚀 Blue Fox Blog API running on http://localhost:${port}/api`, 'Bootstrap');
 }

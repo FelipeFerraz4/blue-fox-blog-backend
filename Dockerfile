@@ -17,7 +17,7 @@ RUN npm install
 COPY src ./src/
 RUN npx prisma generate
 
-EXPOSE 3000 8081
+EXPOSE 8081
 
 CMD ["sh", "-c", "npx prisma db push --accept-data-loss && npx prisma db seed && npm run start:dev"]
 
@@ -50,6 +50,6 @@ RUN mkdir -p /app/logs && chown -R node:node /app/logs
 
 USER node
 
-EXPOSE 3000 8081
+EXPOSE 8081
 
 CMD ["sh", "-c", "npx prisma db push --accept-data-loss && npx prisma db seed && node dist/src/main"]
