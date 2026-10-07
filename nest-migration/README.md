@@ -85,5 +85,10 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.
   - Módulo **Posts**: CRUD completo, busca de `last-post`, `latest`, `most-relevance` (cálculo de score ponderado por views, likes, comentários e tempo), `recommended-posts` e `next-posts` (algoritmo sequencial inteligente), incrementadores de visualização (incluindo público por slug).
   - Módulo **Comments**: Criação pública por leitores, listagem por post e endpoints protegidos de moderação de status e exclusão.
   - Módulo **Blogs**: Consulta pública do blog corrente via multi-tenant e listagem por slug.
-- [ ] **Fase 6: Documentação OpenAPI / Swagger Interativo**
+- [x] **Fase 6: Documentação OpenAPI / Swagger Interativo**
+  - Configuração oficial do Swagger OpenAPI 100% em inglês com persistência de token e filtragem rápida.
+  - Agrupamento por tags descritivas (`Health`, `Category`, `Author`, `Post`, `Comment`, `Blog`).
+  - `ErrorResponseDto` e `GlobalHttpExceptionFilter` padronizando respostas de erro 400, 401, 403, 404, 409 e 500 no mesmo formato do Spring Boot.
+  - Decorators compostos `@DefaultApiResponses()` e `@DefaultReadApiResponses()`.
+  - Parâmetro global `X-Blog-ID` e autenticação Bearer JWT documentados interativamente em `/api/docs`.
 - [ ] **Fase 7: Validação, Testes Automatizados e Cutover**

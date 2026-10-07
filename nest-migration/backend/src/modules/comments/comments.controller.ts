@@ -31,18 +31,18 @@ export class CommentsController {
   @Post()
   @Public()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Criar novo comentário em um post', description: 'Permite que leitores adicionem comentários em um post' })
-  @ApiResponse({ status: 201, description: 'Comentário criado com sucesso' })
-  @ApiResponse({ status: 404, description: 'Post não encontrado' })
+  @ApiOperation({ summary: 'Create a new comment on a post', description: 'Allows readers to add comments on an existing post' })
+  @ApiResponse({ status: 201, description: 'Comment created successfully' })
+  @ApiResponse({ status: 404, description: 'Post not found' })
   create(@Body() dto: CreateCommentDto) {
     return this.commentsService.create(dto);
   }
 
   @Get('post/:postId')
   @Public()
-  @ApiOperation({ summary: 'Listar comentários de um post', description: 'Retorna todos os comentários ativos de um determinado post' })
-  @ApiParam({ name: 'postId', description: 'ID do post (UUID)' })
-  @ApiResponse({ status: 200, description: 'Comentários encontrados' })
+  @ApiOperation({ summary: 'List comments of a post', description: 'Returns all active comments belonging to a specific post' })
+  @ApiParam({ name: 'postId', description: 'Post id (UUID)' })
+  @ApiResponse({ status: 200, description: 'Comments found' })
   findByPost(@Param('postId', ParseUUIDPipe) postId: string) {
     return this.commentsService.findByPost(postId);
   }
@@ -50,10 +50,10 @@ export class CommentsController {
   @Patch(':id/status')
   @Roles('ADMIN', 'AQUARISM_EDITORS')
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Atualizar status do comentário (Moderação)', description: 'Moderar status do comentário (ACTIVE, INACTIVE, etc.)' })
-  @ApiParam({ name: 'id', description: 'ID do comentário (UUID)' })
-  @ApiResponse({ status: 200, description: 'Status atualizado com sucesso' })
-  @ApiResponse({ status: 404, description: 'Comentário não encontrado' })
+  @ApiOperation({ summary: 'Update comment status (Moderation)', description: 'Moderates comment status (ACTIVE, INACTIVE, etc.)' })
+  @ApiParam({ name: 'id', description: 'Comment id (UUID)' })
+  @ApiResponse({ status: 200, description: 'Status updated successfully' })
+  @ApiResponse({ status: 404, description: 'Comment not found' })
   updateStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateStatusDto,
@@ -65,10 +65,10 @@ export class CommentsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles('ADMIN')
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Soft delete comentário', description: 'Marca status do comentário como DELETED' })
-  @ApiParam({ name: 'id', description: 'ID do comentário (UUID)' })
-  @ApiResponse({ status: 204, description: 'Comentário excluído com sucesso' })
-  @ApiResponse({ status: 404, description: 'Comentário não encontrado' })
+  @ApiOperation({ summary: 'Soft delete comment', description: 'Marks comment status as DELETED' })
+  @ApiParam({ name: 'id', description: 'Comment id (UUID)' })
+  @ApiResponse({ status: 204, description: 'Comment soft deleted successfully' })
+  @ApiResponse({ status: 404, description: 'Comment not found' })
   softDelete(@Param('id', ParseUUIDPipe) id: string) {
     return this.commentsService.softDelete(id);
   }
@@ -77,10 +77,10 @@ export class CommentsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @Roles('ADMIN')
   @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Hard delete comentário', description: 'Remove fisicamente o comentário do banco' })
-  @ApiParam({ name: 'id', description: 'ID do comentário (UUID)' })
-  @ApiResponse({ status: 204, description: 'Comentário excluído permanentemente' })
-  @ApiResponse({ status: 404, description: 'Comentário não encontrado' })
+  @ApiOperation({ summary: 'Hard delete comment', description: 'Permanently removes comment from the database' })
+  @ApiParam({ name: 'id', description: 'Comment id (UUID)' })
+  @ApiResponse({ status: 204, description: 'Comment hard deleted successfully' })
+  @ApiResponse({ status: 404, description: 'Comment not found' })
   hardDelete(@Param('id', ParseUUIDPipe) id: string) {
     return this.commentsService.hardDelete(id);
   }

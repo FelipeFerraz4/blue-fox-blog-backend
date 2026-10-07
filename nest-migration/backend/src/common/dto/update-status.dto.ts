@@ -5,10 +5,10 @@ import { Status } from '@prisma/client';
 export class UpdateStatusDto {
   @ApiProperty({
     enum: Status,
-    description: 'Novo status para a entidade',
+    description: 'New status for the target entity',
     example: Status.ACTIVE,
   })
-  @IsNotEmpty({ message: 'O status é obrigatório.' })
-  @IsEnum(Status, { message: 'Status deve ser ACTIVE, INACTIVE, SUSPENDED, PENDING ou DELETED.' })
+  @IsNotEmpty({ message: 'Status cannot be null or empty' })
+  @IsEnum(Status, { message: 'Status must be one of: ACTIVE, INACTIVE, SUSPENDED, PENDING, DELETED' })
   status: Status;
 }

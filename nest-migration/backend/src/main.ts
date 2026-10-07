@@ -38,13 +38,13 @@ async function bootstrap() {
     }),
   );
 
-  // Configuração do Swagger OpenAPI
+  // Swagger OpenAPI Configuration (100% in English)
   const swaggerEnabled = process.env.SWAGGER_ENABLED !== 'false';
   if (swaggerEnabled) {
     const swaggerConfig = new DocumentBuilder()
       .setTitle('Blue Fox Blog API')
       .setDescription(
-        'Backend NestJS com Prisma para o ecossistema do Blog Blue Fox. Suporta multi-tenancy e autenticação Keycloak.',
+        'Enterprise NestJS REST API with Prisma ORM for the Blue Fox Blog ecosystem. Features multi-tenancy isolation via X-Blog-ID and stateless OAuth2 Keycloak JWT authentication.',
       )
       .setVersion('1.0.0')
       .addBearerAuth(
@@ -53,7 +53,7 @@ async function bootstrap() {
           scheme: 'bearer',
           bearerFormat: 'JWT',
           name: 'JWT',
-          description: 'Insira o token JWT emitido pelo Keycloak',
+          description: 'Insert Keycloak Bearer JWT token',
           in: 'header',
         },
         'JWT-auth',
@@ -62,25 +62,36 @@ async function bootstrap() {
         name: 'X-Blog-ID',
         in: 'header',
         required: false,
-        description: 'UUID do blog (multi-tenant context). Exemplo: 77e2c400-28ab-4add-b219-112233445566',
+        description: 'Tenant Blog UUID context header. Example: 77e2c400-28ab-4add-b219-112233445566',
         schema: {
           type: 'string',
           format: 'uuid',
           default: '77e2c400-28ab-4add-b219-112233445566',
         },
       })
+      .addTag('Health', 'System and database health check probes for Docker/Kubernetes')
+      .addTag('Category', 'Category management and taxonomy endpoints')
+      .addTag('Author', 'Author profiles and metadata management')
+      .addTag('Post', 'Blog post publishing, automated recommendations and metrics')
+      .addTag('Comment', 'Reader comments and moderation workflows')
+      .addTag('Blog', 'Multi-tenant blog metadata and discovery')
       .build();
 
     const document = SwaggerModule.createDocument(app, swaggerConfig);
     SwaggerModule.setup('api/docs', app, document, {
-      customSiteTitle: 'Blue Fox Blog API Docs',
+      customSiteTitle: 'Blue Fox Blog API Documentation',
+      swaggerOptions: {
+        persistAuthorization: true,
+        docExpansion: 'list',
+        filter: true,
+      },
     });
-    appLogger.log('📄 Swagger UI disponível em: /api/docs', 'Bootstrap');
+    appLogger.log('📄 Swagger documentation available at: /api/docs', 'Bootstrap');
   }
 
   const port = process.env.BACKEND_PORT || process.env.PORT || 3000;
   await app.listen(port);
-  appLogger.log(`🚀 Blue Fox Blog API rodando em http://localhost:${port}/api`, 'Bootstrap');
+  appLogger.log(`🚀 Blue Fox Blog API running on http://localhost:${port}/api`, 'Bootstrap');
 }
 
 bootstrap();

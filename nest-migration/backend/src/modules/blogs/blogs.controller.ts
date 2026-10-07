@@ -10,27 +10,27 @@ export class BlogsController {
 
   @Get('current')
   @Public()
-  @ApiOperation({ summary: 'Obter dados do blog atual', description: 'Retorna as informações do blog definido no contexto de multi-tenant' })
-  @ApiResponse({ status: 200, description: 'Blog encontrado' })
-  @ApiResponse({ status: 404, description: 'Blog não encontrado' })
+  @ApiOperation({ summary: 'Get current tenant blog metadata', description: 'Returns blog information resolved from the active multi-tenant context' })
+  @ApiResponse({ status: 200, description: 'Blog found' })
+  @ApiResponse({ status: 404, description: 'Blog not found' })
   getCurrentBlog() {
     return this.blogsService.getCurrentBlog();
   }
 
   @Get('slug/:slug')
   @Public()
-  @ApiOperation({ summary: 'Buscar blog por slug', description: 'Retorna as informações do blog com base no slug' })
-  @ApiParam({ name: 'slug', description: 'Slug do blog' })
-  @ApiResponse({ status: 200, description: 'Blog encontrado' })
-  @ApiResponse({ status: 404, description: 'Blog não encontrado' })
+  @ApiOperation({ summary: 'Find blog by slug', description: 'Returns blog information matching the given slug' })
+  @ApiParam({ name: 'slug', description: 'Blog slug' })
+  @ApiResponse({ status: 200, description: 'Blog found' })
+  @ApiResponse({ status: 404, description: 'Blog not found' })
   findBySlug(@Param('slug') slug: string) {
     return this.blogsService.findBySlug(slug);
   }
 
   @Get()
   @Public()
-  @ApiOperation({ summary: 'Listar todos os blogs ativos', description: 'Retorna a lista de blogs com status ACTIVE' })
-  @ApiResponse({ status: 200, description: 'Blogs encontrados' })
+  @ApiOperation({ summary: 'List all active blogs', description: 'Returns a list of all blogs currently in ACTIVE status' })
+  @ApiResponse({ status: 200, description: 'Blogs found' })
   findAllActive() {
     return this.blogsService.findAllActive();
   }

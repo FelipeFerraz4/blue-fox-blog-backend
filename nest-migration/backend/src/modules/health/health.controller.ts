@@ -17,11 +17,11 @@ export class HealthController {
   @Get()
   @HealthCheck()
   @ApiOperation({
-    summary: 'Verifica o status de saúde da aplicação',
-    description: 'Realiza health check da conexão com PostgreSQL/Prisma e consumo de memória.',
+    summary: 'Check application and database health status',
+    description: 'Performs health checks on database connectivity (Prisma/PostgreSQL) and memory heap/rss consumption.',
   })
-  @ApiResponse({ status: 200, description: 'Aplicação e banco de dados operacionais.' })
-  @ApiResponse({ status: 503, description: 'Uma ou mais dependências estão indisponíveis.' })
+  @ApiResponse({ status: 200, description: 'Application and database are operational.' })
+  @ApiResponse({ status: 503, description: 'One or more system dependencies are unavailable.' })
   check() {
     return this.health.check([
       () => this.prismaHealth.isHealthy('database'),
