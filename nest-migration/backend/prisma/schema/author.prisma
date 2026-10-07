@@ -1,0 +1,17 @@
+model Author {
+  id                String    @id @default(uuid()) @db.Uuid
+  blogId            String    @map("blog_id") @db.Uuid
+  name              String    @db.VarChar(255)
+  bio               String?   @db.Text
+  profilePictureUrl String?   @map("profile_picture_url") @db.VarChar(255)
+  slug              String    @unique @db.VarChar(255)
+  email             String    @unique @db.VarChar(255)
+  status            Status    @default(ACTIVE)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  blog  Blog   @relation(fields: [blogId], references: [id], onDelete: Restrict)
+  posts Post[]
+
+  @@map("authors")
+}
