@@ -5,7 +5,7 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
     command: npm run start:dev
     environment:
@@ -14,6 +14,6 @@ services:
     ports:
       - "${BACKEND_PORT:-8081}:${BACKEND_PORT:-8081}"
     volumes:
-      - ./backend/src:/app/src
-      - ./backend/prisma:/app/prisma
-      - ./backend/logs:/app/logs
+      - ./src:/app/src
+      - ./prisma:/app/prisma
+      - ./logs:/app/logs

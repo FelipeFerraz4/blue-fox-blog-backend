@@ -1,110 +1,22 @@
-# ===========================
-# Build
-# ===========================
-target/
-build/
-out/
+# Dependencies
+node_modules/
 
-# Maven
-.mvn/wrapper/maven-wrapper.jar
-
-# Gradle
-.gradle/
+# Build artifacts
+dist/
 
 # Logs
 logs/
 *.log
-hs_err_pid*
-replay_pid*
 
-# Spring Boot
-*.pid
-*.seed
-*.pid.lock
-
-# ===========================
-# IDEs
-# ===========================
-
-# IntelliJ IDEA
-.idea/
-*.iml
-
-# Eclipse
-.project
-.classpath
-.settings/
-.factorypath
-
-# VS Code
-.vscode/
-
-# NetBeans
-nbproject/private/
-nbbuild/
-dist/
-nbdist/
-
-# ===========================
-# OS
-# ===========================
-
-# Windows
-Thumbs.db
-Desktop.ini
-
-# macOS
-.DS_Store
-
-# Linux
-*~
-
-# ===========================
-# Environment
-# ===========================
-
+# Environment variables
 .env
-.env.*
-!.env.example
+.env.dev
+.env.prod
 !.env.dev.example
 !.env.prod.example
 
-# ===========================
-# Temporary files
-# ===========================
-
-*.tmp
-*.temp
-*.swp
-*.swo
-
-# ===========================
-# Test Reports
-# ===========================
-
-coverage/
-jacoco.exec
-jacoco/
-site/
-
-# ===========================
-# Dependency directories
-# ===========================
-
-node_modules/
-
-# ===========================
-# Archives
-# ===========================
-
-*.zip
-*.tar
-*.tar.gz
-*.rar
-*.7z
-
-# ===========================
-# Generated files
-# ===========================
-
-generated/
+# OS and Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
