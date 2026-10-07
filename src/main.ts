@@ -2,7 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import cookieParser from 'cookie-parser';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const cookieParser = require('cookie-parser');
 import { AppLoggerService } from './common/logger/app-logger.service';
 
 // Polyfill para serialização segura de BigInt do Prisma para JSON

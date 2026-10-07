@@ -7,10 +7,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: npm run start:dev
+      target: development
     environment:
       NODE_ENV: development
       SWAGGER_ENABLED: "true"
+      PORT: ${BACKEND_PORT:-8081}
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@postgres:5432/${DB_NAME:-blog_db}?schema=public
     ports:
       - "${BACKEND_PORT:-8081}:${BACKEND_PORT:-8081}"
     volumes:
