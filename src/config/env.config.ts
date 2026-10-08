@@ -26,7 +26,7 @@ export const loadEnvConfig = (): EnvConfig => {
     NODE_ENV: nodeEnv,
     PORT: port,
     DATABASE_URL: databaseUrl || 'postgresql://postgres:postgres@localhost:5432/blog_db?schema=public',
-    KEYCLOAK_ISSUER_URI: process.env.KEYCLOAK_ISSUER_URI || 'http://localhost:8080/auth/realms/Blue_Fox_Group',
+    KEYCLOAK_ISSUER_URI: process.env.KEYCLOAK_ISSUER_URI || 'http://localhost:8080/auth/realms/blue-fox-global-group',
     SWAGGER_ENABLED: process.env.SWAGGER_ENABLED !== 'false',
     LOG_LEVEL: process.env.LOG_LEVEL || (nodeEnv === 'production' ? 'info' : 'debug'),
   };

@@ -16,7 +16,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(configService: ConfigService) {
     const issuerUri = configService.get<string>(
       'KEYCLOAK_ISSUER_URI',
-      'http://localhost:8080/auth/realms/Blue_Fox_Group',
+      'http://localhost:8080/auth/realms/blue-fox-global-group',
     );
 
     super({
