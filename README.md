@@ -13,7 +13,7 @@ Enterprise REST API with Prisma ORM for the Blue Fox Blog ecosystem, replacing l
 ├── tsconfig.json           # Strict TypeScript configuration
 ├── nest-cli.json
 ├── docker-compose.yml      # Base orchestration (PostgreSQL + NestJS API)
-├── docker-compose.dev.yaml # Development override (hot-reload & ports)
+├── docker-compose.dev.yml  # Development override (hot-reload & ports)
 ├── docker-compose.prod.yml # Production override (restart policies & networks)
 ├── .env.dev.example        # Development environment template
 ├── .env.prod.example       # Production environment template
@@ -74,7 +74,7 @@ npm run test:e2e
 ### Docker Compose (Dev):
 ```bash
 cp .env.dev.example .env.dev
-docker compose -f docker-compose.yml -f docker-compose.dev.yaml --env-file .env.dev up --build
+docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.dev up --build
 ```
 
 ### Docker Compose (Prod):
