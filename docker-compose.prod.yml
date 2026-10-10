@@ -3,10 +3,3 @@ services:
     environment:
       NODE_ENV: production
       SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
-    networks:
-      - blog-db-net
-      - blog-api-net
-
-networks:
-  blog-api-net:
-    external: true

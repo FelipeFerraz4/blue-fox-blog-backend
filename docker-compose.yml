@@ -10,7 +10,7 @@ services:
     volumes:
       - blog-db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-blog_db}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-blog_db}" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -39,7 +39,7 @@ services:
     volumes:
       - blog-logs:/app/logs
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:${PORT:-8081}/api/health || exit 1"]
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:${PORT:-8081}/api/health || exit 1" ]
       interval: 15s
       timeout: 5s
       retries: 3
@@ -49,14 +49,13 @@ services:
         condition: service_healthy
     networks:
       - blog-db-net
-      - blog-api-net
+      - infra-net
 
 networks:
   blog-db-net:
     driver: bridge
-
-  blog-api-net:
-    driver: bridge
+  infra-net:
+    external: true
 
 volumes:
   blog-db-data:
