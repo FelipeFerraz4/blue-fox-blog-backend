@@ -39,7 +39,9 @@ RUN apk add --no-cache openssl libc6-compat
 ENV NODE_ENV=production
 
 COPY package*.json tsconfig*.json ./
-RUN npm install --omit=dev && npm install -g prisma
+RUN npm install --omit=dev && npm install -g ts-node typescript@^5.6.2 prisma@^5.20.0
+
+ENV NODE_PATH=/usr/local/lib/node_modules
 
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
