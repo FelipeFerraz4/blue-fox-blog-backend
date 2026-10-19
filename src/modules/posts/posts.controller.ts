@@ -27,6 +27,9 @@ import { UpdateStatusDto } from '../../common/dto/update-status.dto';
 import { Public } from '../auth/public.decorator';
 import { Roles } from '../auth/roles.decorator';
 import { KeycloakRole } from '../auth/roles.constants';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { KeycloakUser } from '../auth/jwt.strategy';
+import { canSeeUnpublished } from '../auth/content-visibility';
 import { Status } from '@prisma/client';
 
 @ApiTags('Post')
@@ -90,8 +93,8 @@ export class PostsController {
   })
   @ApiParam({ name: 'slug', description: 'Post slug' })
   @ApiResponse({ status: 200, description: 'Post recommendations found' })
-  getRecommendedPosts(@Param('slug') slug: string) {
-    return this.postsService.findRecommendedPosts(slug);
+  getRecommendedPosts(@Param('slug') slug: string, @CurrentUser() user: KeycloakUser | null) {
+    return this.postsService.findRecommendedPosts(slug, canSeeUnpublished(user));
   }
 
   @Get('next-posts/:slug')
@@ -102,18 +105,38 @@ export class PostsController {
   })
   @ApiParam({ name: 'slug', description: 'Current post slug' })
   @ApiResponse({ status: 200, description: 'Sequential posts found' })
-  getNextPosts(@Param('slug') slug: string) {
-    return this.postsService.findNextPosts(slug, 6);
+  getNextPosts(@Param('slug') slug: string, @CurrentUser() user: KeycloakUser | null) {
+    return this.postsService.findNextPosts(slug, 6, canSeeUnpublished(user));
   }
 
   @Get('slug/:slug')
   @Public()
-  @ApiOperation({ summary: 'Find post by slug', description: 'Find a post by its slug' })
+  @ApiOperation({
+    summary: 'Find post by slug',
+    description: 'Find a post by its slug. Drafts (unpublished posts) are only returned to editors and admins; everyone else gets 404.',
+  })
   @ApiParam({ name: 'slug', description: 'Post slug' })
   @ApiResponse({ status: 200, description: 'Post found' })
   @ApiResponse({ status: 404, description: 'Post not found' })
-  findBySlug(@Param('slug') slug: string) {
-    return this.postsService.findBySlug(slug);
+  findBySlug(@Param('slug') slug: string, @CurrentUser() user: KeycloakUser | null) {
+    return this.postsService.findBySlug(slug, canSeeUnpublished(user));
+  }
+
+  @Get('all')
+  @Public()
+  @ApiOperation({ summary: 'Find all posts', description: 'Find all posts' })
+  @ApiResponse({ status: 200, description: 'Posts found' })
+  findAll(@CurrentUser() user: KeycloakUser | null) {
+    return this.postsService.findAll(canSeeUnpublished(user));
+  }
+
+  @Get('status/:status')
+  @Public()
+  @ApiOperation({ summary: 'Find posts by status', description: 'Find posts by their status' })
+  @ApiParam({ name: 'status', enum: Status, description: 'Post status' })
+  @ApiResponse({ status: 200, description: 'Posts found' })
+  findByStatus(@Param('status') status: Status, @CurrentUser() user: KeycloakUser | null) {
+    return this.postsService.findAllByStatus(status, canSeeUnpublished(user));
   }
 
   @Get(':id')
@@ -122,33 +145,19 @@ export class PostsController {
   @ApiParam({ name: 'id', description: 'Post id (UUID)' })
   @ApiResponse({ status: 200, description: 'Post found' })
   @ApiResponse({ status: 404, description: 'Post not found' })
-  findById(@Param('id', ParseUUIDPipe) id: string) {
-    return this.postsService.findById(id);
+  findById(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: KeycloakUser | null) {
+    return this.postsService.findById(id, canSeeUnpublished(user));
   }
 
   @Get()
   @Public()
-  @ApiOperation({ summary: 'Find all active posts', description: 'Find all active posts' })
+  @ApiOperation({
+    summary: 'Find all active posts',
+    description: 'Find all active posts. Drafts are only included for editors and admins.',
+  })
   @ApiResponse({ status: 200, description: 'Posts found' })
-  findAllActive() {
-    return this.postsService.findAllActive();
-  }
-
-  @Get('all')
-  @Public()
-  @ApiOperation({ summary: 'Find all posts', description: 'Find all posts' })
-  @ApiResponse({ status: 200, description: 'Posts found' })
-  findAll() {
-    return this.postsService.findAll();
-  }
-
-  @Get('status/:status')
-  @Public()
-  @ApiOperation({ summary: 'Find posts by status', description: 'Find posts by their status' })
-  @ApiParam({ name: 'status', enum: Status, description: 'Post status' })
-  @ApiResponse({ status: 200, description: 'Posts found' })
-  findByStatus(@Param('status') status: Status) {
-    return this.postsService.findAllByStatus(status);
+  findAllActive(@CurrentUser() user: KeycloakUser | null) {
+    return this.postsService.findAllActive(canSeeUnpublished(user));
   }
 
   @Put(':id')

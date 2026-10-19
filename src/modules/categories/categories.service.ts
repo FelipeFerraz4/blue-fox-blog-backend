@@ -97,15 +97,19 @@ export class CategoriesService {
     });
   }
 
-  async findAll() {
+  async findAll(includeInactive = false) {
     const blogId = TenantContext.getTenantId();
     return this.prisma.category.findMany({
-      where: { blogId },
+      where: { blogId, ...(includeInactive ? {} : { status: Status.ACTIVE }) },
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  async findByStatus(status: Status) {
+  async findByStatus(status: Status, includeInactive = false) {
+    // O público só enxerga itens ativos: listar por qualquer outro status exige papel de editor/admin.
+    if (!includeInactive && status !== Status.ACTIVE) {
+      return [];
+    }
     const blogId = TenantContext.getTenantId();
     return this.prisma.category.findMany({
       where: { blogId, status },

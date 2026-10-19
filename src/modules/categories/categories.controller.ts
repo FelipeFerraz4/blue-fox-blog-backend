@@ -25,6 +25,9 @@ import { UpdateStatusDto } from '../../common/dto/update-status.dto';
 import { Public } from '../auth/public.decorator';
 import { Roles } from '../auth/roles.decorator';
 import { KeycloakRole } from '../auth/roles.constants';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { KeycloakUser } from '../auth/jwt.strategy';
+import { canSeeInactive } from '../auth/content-visibility';
 import { Status } from '@prisma/client';
 
 @ApiTags('Category')
@@ -41,6 +44,23 @@ export class CategoriesController {
   @ApiResponse({ status: 409, description: 'Category already exists' })
   create(@Body() dto: CreateCategoryDto) {
     return this.categoriesService.create(dto);
+  }
+
+  @Get('all')
+  @Public()
+  @ApiOperation({ summary: 'Find all categories', description: 'Find all categories' })
+  @ApiResponse({ status: 200, description: 'Categories found' })
+  findAll(@CurrentUser() user: KeycloakUser | null) {
+    return this.categoriesService.findAll(canSeeInactive(user));
+  }
+
+  @Get('status/:status')
+  @Public()
+  @ApiOperation({ summary: 'Find categories by status', description: 'Find categories by their status' })
+  @ApiParam({ name: 'status', enum: Status, description: 'Category status' })
+  @ApiResponse({ status: 200, description: 'Categories found' })
+  findByStatus(@Param('status') status: Status, @CurrentUser() user: KeycloakUser | null) {
+    return this.categoriesService.findByStatus(status, canSeeInactive(user));
   }
 
   @Get(':id')
@@ -79,23 +99,6 @@ export class CategoriesController {
   @ApiResponse({ status: 200, description: 'Categories found' })
   findAllActive() {
     return this.categoriesService.findAllActive();
-  }
-
-  @Get('all')
-  @Public()
-  @ApiOperation({ summary: 'Find all categories', description: 'Find all categories' })
-  @ApiResponse({ status: 200, description: 'Categories found' })
-  findAll() {
-    return this.categoriesService.findAll();
-  }
-
-  @Get('status/:status')
-  @Public()
-  @ApiOperation({ summary: 'Find categories by status', description: 'Find categories by their status' })
-  @ApiParam({ name: 'status', enum: Status, description: 'Category status' })
-  @ApiResponse({ status: 200, description: 'Categories found' })
-  findByStatus(@Param('status') status: Status) {
-    return this.categoriesService.findByStatus(status);
   }
 
   @Put(':id')

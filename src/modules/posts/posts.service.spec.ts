@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PostsService } from './posts.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TenantContext } from '../tenant/tenant.context';
+import { Status } from '@prisma/client';
+import { NotFoundException } from '@nestjs/common';
 
 describe('PostsService (Unit Tests)', () => {
   let service: PostsService;
@@ -79,6 +81,8 @@ describe('PostsService (Unit Tests)', () => {
         id: 'post-1',
         title: 'Target Post',
         views: 42,
+        published: true,
+        status: Status.ACTIVE,
       };
 
       mockPrisma.post.findUnique = jest.fn().mockResolvedValue(mockPost);
@@ -95,6 +99,106 @@ describe('PostsService (Unit Tests)', () => {
         where: { id: 'post-1' },
         data: { views: { increment: 1 } },
       });
+    });
+  });
+
+  describe('Draft visibility', () => {
+    const run = <T>(fn: () => Promise<T>) => TenantContext.run(mockBlogId, fn);
+    const publishedActive = { published: true, status: Status.ACTIVE };
+
+    it('findBySlug hides drafts and removed posts from the public (404)', async () => {
+      mockPrisma.post.findFirst.mockResolvedValue(null);
+
+      await expect(run(() => service.findBySlug('tetra-fish-guide'))).rejects.toThrow(NotFoundException);
+
+      expect(mockPrisma.post.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { slug: 'tetra-fish-guide', blogId: mockBlogId, ...publishedActive } }),
+      );
+    });
+
+    it('findBySlug returns drafts to editors (includeUnpublished)', async () => {
+      mockPrisma.post.findFirst.mockResolvedValue({ id: 'draft-1', slug: 'tetra-fish-guide', published: false });
+
+      const post = await run(() => service.findBySlug('tetra-fish-guide', true));
+
+      expect(post.id).toBe('draft-1');
+      expect(mockPrisma.post.findFirst).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { slug: 'tetra-fish-guide', blogId: mockBlogId } }),
+      );
+    });
+
+    it('findById hides drafts from the public but not from editors', async () => {
+      mockPrisma.post.findFirst.mockResolvedValue(null);
+      await expect(run(() => service.findById('id-1'))).rejects.toThrow(NotFoundException);
+      expect(mockPrisma.post.findFirst).toHaveBeenLastCalledWith(
+        expect.objectContaining({ where: { id: 'id-1', blogId: mockBlogId, ...publishedActive } }),
+      );
+
+      mockPrisma.post.findFirst.mockResolvedValue({ id: 'id-1', published: false });
+      await run(() => service.findById('id-1', true));
+      expect(mockPrisma.post.findFirst).toHaveBeenLastCalledWith(
+        expect.objectContaining({ where: { id: 'id-1', blogId: mockBlogId } }),
+      );
+    });
+
+    it('findAllActive lists only published posts for the public, and drafts too for editors', async () => {
+      mockPrisma.post.findMany.mockResolvedValue([]);
+
+      await run(() => service.findAllActive());
+      expect(mockPrisma.post.findMany).toHaveBeenLastCalledWith(
+        expect.objectContaining({ where: { blogId: mockBlogId, status: Status.ACTIVE, published: true } }),
+      );
+
+      await run(() => service.findAllActive(true));
+      expect(mockPrisma.post.findMany).toHaveBeenLastCalledWith(
+        expect.objectContaining({ where: { blogId: mockBlogId, status: Status.ACTIVE } }),
+      );
+    });
+
+    it('findAll (public) never returns drafts or removed posts', async () => {
+      mockPrisma.post.findMany.mockResolvedValue([]);
+
+      await run(() => service.findAll());
+
+      expect(mockPrisma.post.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { blogId: mockBlogId, ...publishedActive } }),
+      );
+    });
+
+    it('findAllByStatus gives the public nothing but active published posts', async () => {
+      mockPrisma.post.findMany.mockResolvedValue([]);
+
+      // status diferente de ACTIVE: nem consulta o banco
+      expect(await run(() => service.findAllByStatus(Status.DELETED))).toEqual([]);
+      expect(await run(() => service.findAllByStatus(Status.INACTIVE))).toEqual([]);
+      expect(mockPrisma.post.findMany).not.toHaveBeenCalled();
+
+      await run(() => service.findAllByStatus(Status.ACTIVE));
+      expect(mockPrisma.post.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { blogId: mockBlogId, status: Status.ACTIVE, published: true } }),
+      );
+    });
+
+    it('findAllByStatus lets editors list any status', async () => {
+      mockPrisma.post.findMany.mockResolvedValue([]);
+
+      await run(() => service.findAllByStatus(Status.DELETED, true));
+
+      expect(mockPrisma.post.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { blogId: mockBlogId, status: Status.DELETED } }),
+      );
+    });
+
+    it('incrementViews does not count drafts or removed posts, and does not reveal them', async () => {
+      mockPrisma.post.update = jest.fn();
+
+      mockPrisma.post.findUnique = jest.fn().mockResolvedValue({ id: 'd1', published: false, status: Status.ACTIVE });
+      await expect(run(() => service.incrementViews('tetra-fish-guide'))).resolves.toBeUndefined();
+
+      mockPrisma.post.findUnique = jest.fn().mockResolvedValue({ id: 'd2', published: true, status: Status.DELETED });
+      await expect(run(() => service.incrementViews('old-post'))).resolves.toBeUndefined();
+
+      expect(mockPrisma.post.update).not.toHaveBeenCalled();
     });
   });
 });

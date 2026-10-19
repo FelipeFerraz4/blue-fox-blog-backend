@@ -119,13 +119,21 @@ export class PostsService {
       });
     }
 
-    return this.findById(post.id);
+    return this.findById(post.id, true);
   }
 
-  async findById(id: string) {
+  /**
+   * Filtro de visibilidade. Sem `includeUnpublished`, só posts publicados e ativos (o que o público pode ver);
+   * rascunhos só aparecem para editores/admins (ver `canSeeUnpublished`) e para as operações internas.
+   */
+  private visibleOnly(includeUnpublished: boolean) {
+    return includeUnpublished ? {} : { published: true, status: Status.ACTIVE };
+  }
+
+  async findById(id: string, includeUnpublished = false) {
     const blogId = TenantContext.getTenantId();
     const post = await this.prisma.post.findFirst({
-      where: { id, blogId },
+      where: { id, blogId, ...this.visibleOnly(includeUnpublished) },
       include: this.postInclude,
     });
 
@@ -136,10 +144,10 @@ export class PostsService {
     return this.mapPost(post);
   }
 
-  async findBySlug(slug: string) {
+  async findBySlug(slug: string, includeUnpublished = false) {
     const blogId = TenantContext.getTenantId();
     const post = await this.prisma.post.findFirst({
-      where: { slug, blogId },
+      where: { slug, blogId, ...this.visibleOnly(includeUnpublished) },
       include: this.postInclude,
     });
 
@@ -150,30 +158,34 @@ export class PostsService {
     return this.mapPost(post);
   }
 
-  async findAllActive() {
+  async findAllActive(includeUnpublished = false) {
     const blogId = TenantContext.getTenantId();
     const posts = await this.prisma.post.findMany({
-      where: { blogId, status: Status.ACTIVE },
+      where: { blogId, status: Status.ACTIVE, ...(includeUnpublished ? {} : { published: true }) },
       include: this.postInclude,
       orderBy: { createdAt: 'desc' },
     });
     return posts.map((p) => this.mapPost(p));
   }
 
-  async findAll() {
+  async findAll(includeUnpublished = false) {
     const blogId = TenantContext.getTenantId();
     const posts = await this.prisma.post.findMany({
-      where: { blogId },
+      where: { blogId, ...this.visibleOnly(includeUnpublished) },
       include: this.postInclude,
       orderBy: { createdAt: 'desc' },
     });
     return posts.map((p) => this.mapPost(p));
   }
 
-  async findAllByStatus(status: Status) {
+  async findAllByStatus(status: Status, includeUnpublished = false) {
+    // O público só enxerga posts ativos e publicados: qualquer outro status (inativo, removido...) não é listado.
+    if (!includeUnpublished && status !== Status.ACTIVE) {
+      return [];
+    }
     const blogId = TenantContext.getTenantId();
     const posts = await this.prisma.post.findMany({
-      where: { blogId, status },
+      where: { blogId, status, ...(includeUnpublished ? {} : { published: true }) },
       include: this.postInclude,
       orderBy: { createdAt: 'desc' },
     });
@@ -221,8 +233,8 @@ export class PostsService {
     return scoredPosts.slice(0, limit).map((s) => s.post);
   }
 
-  async findRecommendedPosts(slug: string) {
-    const currentPost = await this.findBySlug(slug);
+  async findRecommendedPosts(slug: string, includeUnpublished = false) {
+    const currentPost = await this.findBySlug(slug, includeUnpublished);
     if (!currentPost.recommendedPostIds || currentPost.recommendedPostIds.length === 0) {
       return [];
     }
@@ -239,8 +251,8 @@ export class PostsService {
     return posts.map((p) => this.mapPost(p));
   }
 
-  async findNextPosts(slug: string, limit: number = 6) {
-    const currentPost = await this.findBySlug(slug);
+  async findNextPosts(slug: string, limit: number = 6, includeUnpublished = false) {
+    const currentPost = await this.findBySlug(slug, includeUnpublished);
     const blogId = TenantContext.getTenantId();
     const currentPostId = currentPost.id;
     const categoryId = currentPost.categoryId;
@@ -301,7 +313,7 @@ export class PostsService {
   }
 
   async update(id: string, dto: UpdatePostDto) {
-    const existing = await this.findById(id);
+    const existing = await this.findById(id, true);
 
     let slug: string | undefined = undefined;
     if (dto.slug || dto.title) {
@@ -349,16 +361,16 @@ export class PostsService {
       }
     }
 
-    return this.findById(id);
+    return this.findById(id, true);
   }
 
   async updateStatus(id: string, status: Status) {
-    await this.findById(id);
+    await this.findById(id, true);
     await this.prisma.post.update({
       where: { id },
       data: { status },
     });
-    return this.findById(id);
+    return this.findById(id, true);
   }
 
   async incrementViews(idOrSlug: string) {
@@ -371,6 +383,11 @@ export class PostsService {
       throw new NotFoundException(`Post not found with identifier: ${idOrSlug}`);
     }
 
+    // Rascunhos e posts removidos não contam visualizações (inclusive prévias de editores).
+    if (!post.published || post.status !== Status.ACTIVE) {
+      return;
+    }
+
     await this.prisma.post.update({
       where: { id: post.id },
       data: { views: { increment: 1 } },
@@ -378,7 +395,7 @@ export class PostsService {
   }
 
   async softDelete(id: string) {
-    await this.findById(id);
+    await this.findById(id, true);
     await this.prisma.post.update({
       where: { id },
       data: { status: Status.DELETED },
@@ -386,7 +403,7 @@ export class PostsService {
   }
 
   async hardDelete(id: string) {
-    await this.findById(id);
+    await this.findById(id, true);
     await this.prisma.post.delete({
       where: { id },
     });

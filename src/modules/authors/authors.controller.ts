@@ -25,6 +25,9 @@ import { UpdateStatusDto } from '../../common/dto/update-status.dto';
 import { Public } from '../auth/public.decorator';
 import { Roles } from '../auth/roles.decorator';
 import { KeycloakRole } from '../auth/roles.constants';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { KeycloakUser } from '../auth/jwt.strategy';
+import { canSeeInactive } from '../auth/content-visibility';
 import { Status } from '@prisma/client';
 
 @ApiTags('Author')
@@ -41,6 +44,23 @@ export class AuthorsController {
   @ApiResponse({ status: 409, description: 'Author already exists' })
   create(@Body() dto: CreateAuthorDto) {
     return this.authorsService.create(dto);
+  }
+
+  @Get('all')
+  @Public()
+  @ApiOperation({ summary: 'Find all authors', description: 'Find all authors' })
+  @ApiResponse({ status: 200, description: 'Authors found' })
+  findAll(@CurrentUser() user: KeycloakUser | null) {
+    return this.authorsService.findAll(canSeeInactive(user));
+  }
+
+  @Get('status/:status')
+  @Public()
+  @ApiOperation({ summary: 'Find authors by status', description: 'Find authors by their status' })
+  @ApiParam({ name: 'status', enum: Status, description: 'Author status' })
+  @ApiResponse({ status: 200, description: 'Authors found' })
+  findByStatus(@Param('status') status: Status, @CurrentUser() user: KeycloakUser | null) {
+    return this.authorsService.findByStatus(status, canSeeInactive(user));
   }
 
   @Get(':id')
@@ -89,23 +109,6 @@ export class AuthorsController {
   @ApiResponse({ status: 200, description: 'Authors found' })
   findAllActive() {
     return this.authorsService.findAllActive();
-  }
-
-  @Get('all')
-  @Public()
-  @ApiOperation({ summary: 'Find all authors', description: 'Find all authors' })
-  @ApiResponse({ status: 200, description: 'Authors found' })
-  findAll() {
-    return this.authorsService.findAll();
-  }
-
-  @Get('status/:status')
-  @Public()
-  @ApiOperation({ summary: 'Find authors by status', description: 'Find authors by their status' })
-  @ApiParam({ name: 'status', enum: Status, description: 'Author status' })
-  @ApiResponse({ status: 200, description: 'Authors found' })
-  findByStatus(@Param('status') status: Status) {
-    return this.authorsService.findByStatus(status);
   }
 
   @Put(':id')
