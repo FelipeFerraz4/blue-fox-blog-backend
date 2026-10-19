@@ -24,6 +24,7 @@ import { UpdateAuthorDto } from './dto/update-author.dto';
 import { UpdateStatusDto } from '../../common/dto/update-status.dto';
 import { Public } from '../auth/public.decorator';
 import { Roles } from '../auth/roles.decorator';
+import { KeycloakRole } from '../auth/roles.constants';
 import { Status } from '@prisma/client';
 
 @ApiTags('Author')
@@ -33,7 +34,7 @@ export class AuthorsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @Roles('ADMIN', 'AQUARISM_EDITORS')
+  @Roles(KeycloakRole.ADMIN, KeycloakRole.AQUARIUM_ADMIN, KeycloakRole.AQUARIUM_EDITOR)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create a new author', description: 'Create a new author with the provided data' })
   @ApiResponse({ status: 201, description: 'Author created successfully' })
@@ -108,7 +109,7 @@ export class AuthorsController {
   }
 
   @Put(':id')
-  @Roles('ADMIN', 'AQUARISM_EDITORS')
+  @Roles(KeycloakRole.ADMIN, KeycloakRole.AQUARIUM_ADMIN, KeycloakRole.AQUARIUM_EDITOR)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update an existing author', description: 'Update an existing author with the provided data' })
   @ApiParam({ name: 'id', description: 'Author id (UUID)' })
@@ -123,7 +124,7 @@ export class AuthorsController {
   }
 
   @Patch(':id/status')
-  @Roles('ADMIN', 'AQUARISM_EDITORS')
+  @Roles(KeycloakRole.ADMIN, KeycloakRole.AQUARIUM_ADMIN, KeycloakRole.AQUARIUM_EDITOR)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update author status', description: 'Update the status of an author' })
   @ApiParam({ name: 'id', description: 'Author id (UUID)' })
@@ -138,7 +139,7 @@ export class AuthorsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Roles('ADMIN')
+  @Roles(KeycloakRole.ADMIN, KeycloakRole.AQUARIUM_ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Soft delete author', description: 'Soft delete an author' })
   @ApiParam({ name: 'id', description: 'Author id (UUID)' })
@@ -150,7 +151,7 @@ export class AuthorsController {
 
   @Delete('hard/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Roles('ADMIN')
+  @Roles(KeycloakRole.ADMIN, KeycloakRole.AQUARIUM_ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Hard delete author', description: 'Hard delete an author' })
   @ApiParam({ name: 'id', description: 'Author id (UUID)' })

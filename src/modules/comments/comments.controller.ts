@@ -22,6 +22,7 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateStatusDto } from '../../common/dto/update-status.dto';
 import { Public } from '../auth/public.decorator';
 import { Roles } from '../auth/roles.decorator';
+import { KeycloakRole } from '../auth/roles.constants';
 
 @ApiTags('Comment')
 @Controller('v1/comments')
@@ -48,7 +49,7 @@ export class CommentsController {
   }
 
   @Patch(':id/status')
-  @Roles('ADMIN', 'AQUARISM_EDITORS')
+  @Roles(KeycloakRole.ADMIN, KeycloakRole.AQUARIUM_ADMIN, KeycloakRole.AQUARIUM_EDITOR)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update comment status (Moderation)', description: 'Moderates comment status (ACTIVE, INACTIVE, etc.)' })
   @ApiParam({ name: 'id', description: 'Comment id (UUID)' })
@@ -63,7 +64,7 @@ export class CommentsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Roles('ADMIN')
+  @Roles(KeycloakRole.ADMIN, KeycloakRole.AQUARIUM_ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Soft delete comment', description: 'Marks comment status as DELETED' })
   @ApiParam({ name: 'id', description: 'Comment id (UUID)' })
@@ -75,7 +76,7 @@ export class CommentsController {
 
   @Delete('hard/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Roles('ADMIN')
+  @Roles(KeycloakRole.ADMIN, KeycloakRole.AQUARIUM_ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Hard delete comment', description: 'Permanently removes comment from the database' })
   @ApiParam({ name: 'id', description: 'Comment id (UUID)' })

@@ -24,6 +24,7 @@ import { UpdateCategoryDto } from './dto/update-category.dto';
 import { UpdateStatusDto } from '../../common/dto/update-status.dto';
 import { Public } from '../auth/public.decorator';
 import { Roles } from '../auth/roles.decorator';
+import { KeycloakRole } from '../auth/roles.constants';
 import { Status } from '@prisma/client';
 
 @ApiTags('Category')
@@ -33,7 +34,7 @@ export class CategoriesController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @Roles('ADMIN', 'AQUARISM_EDITORS')
+  @Roles(KeycloakRole.ADMIN, KeycloakRole.AQUARIUM_ADMIN, KeycloakRole.AQUARIUM_EDITOR)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create a new category', description: 'Create a new category with the provided data' })
   @ApiResponse({ status: 201, description: 'Category created successfully' })
@@ -98,7 +99,7 @@ export class CategoriesController {
   }
 
   @Put(':id')
-  @Roles('ADMIN', 'AQUARISM_EDITORS')
+  @Roles(KeycloakRole.ADMIN, KeycloakRole.AQUARIUM_ADMIN, KeycloakRole.AQUARIUM_EDITOR)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update an existing category', description: 'Update an existing category with the provided data' })
   @ApiParam({ name: 'id', description: 'Category id (UUID)' })
@@ -113,7 +114,7 @@ export class CategoriesController {
   }
 
   @Patch(':id/status')
-  @Roles('ADMIN', 'AQUARISM_EDITORS')
+  @Roles(KeycloakRole.ADMIN, KeycloakRole.AQUARIUM_ADMIN, KeycloakRole.AQUARIUM_EDITOR)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update category status', description: 'Update the status of a category' })
   @ApiParam({ name: 'id', description: 'Category id (UUID)' })
@@ -128,7 +129,7 @@ export class CategoriesController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Roles('ADMIN')
+  @Roles(KeycloakRole.ADMIN, KeycloakRole.AQUARIUM_ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Soft delete category', description: 'Soft delete a category' })
   @ApiParam({ name: 'id', description: 'Category id (UUID)' })
@@ -140,7 +141,7 @@ export class CategoriesController {
 
   @Delete('hard/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Roles('ADMIN')
+  @Roles(KeycloakRole.ADMIN, KeycloakRole.AQUARIUM_ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Hard delete category', description: 'Hard delete a category' })
   @ApiParam({ name: 'id', description: 'Category id (UUID)' })

@@ -26,6 +26,7 @@ import { UpdatePostDto } from './dto/update-post.dto';
 import { UpdateStatusDto } from '../../common/dto/update-status.dto';
 import { Public } from '../auth/public.decorator';
 import { Roles } from '../auth/roles.decorator';
+import { KeycloakRole } from '../auth/roles.constants';
 import { Status } from '@prisma/client';
 
 @ApiTags('Post')
@@ -71,7 +72,7 @@ export class PostsController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @Roles('ADMIN', 'AQUARISM_EDITORS')
+  @Roles(KeycloakRole.ADMIN, KeycloakRole.AQUARIUM_ADMIN, KeycloakRole.AQUARIUM_EDITOR)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Create a new post', description: 'Create a new post with the provided data' })
   @ApiResponse({ status: 201, description: 'Post created successfully' })
@@ -151,7 +152,7 @@ export class PostsController {
   }
 
   @Put(':id')
-  @Roles('ADMIN', 'AQUARISM_EDITORS')
+  @Roles(KeycloakRole.ADMIN, KeycloakRole.AQUARIUM_ADMIN, KeycloakRole.AQUARIUM_EDITOR)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update an existing post', description: 'Update an existing post with the provided data' })
   @ApiParam({ name: 'id', description: 'Post id (UUID)' })
@@ -166,7 +167,7 @@ export class PostsController {
   }
 
   @Patch(':id/status')
-  @Roles('ADMIN', 'AQUARISM_EDITORS')
+  @Roles(KeycloakRole.ADMIN, KeycloakRole.AQUARIUM_ADMIN, KeycloakRole.AQUARIUM_EDITOR)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Update post status', description: 'Update the status of a post' })
   @ApiParam({ name: 'id', description: 'Post id (UUID)' })
@@ -180,7 +181,7 @@ export class PostsController {
   }
 
   @Patch(':id/views')
-  @Roles('ADMIN', 'AQUARISM_EDITORS')
+  @Roles(KeycloakRole.ADMIN, KeycloakRole.AQUARIUM_ADMIN, KeycloakRole.AQUARIUM_EDITOR)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Increment post views by ID', description: 'Increment the view counter of a post by 1' })
@@ -204,7 +205,7 @@ export class PostsController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Roles('ADMIN')
+  @Roles(KeycloakRole.ADMIN, KeycloakRole.AQUARIUM_ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Soft delete post', description: 'Soft delete a post' })
   @ApiParam({ name: 'id', description: 'Post id (UUID)' })
@@ -216,7 +217,7 @@ export class PostsController {
 
   @Delete('hard/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Roles('ADMIN')
+  @Roles(KeycloakRole.ADMIN, KeycloakRole.AQUARIUM_ADMIN)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Hard delete post', description: 'Hard delete a post' })
   @ApiParam({ name: 'id', description: 'Post id (UUID)' })
