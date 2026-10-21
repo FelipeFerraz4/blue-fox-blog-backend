@@ -63,3 +63,8 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.
 ```
 
 Env principais: `DATABASE_URL`, `KEYCLOAK_ISSUER_URI`, `PORT`, `SWAGGER_ENABLED`, `LOG_LEVEL`.
+
+## 🔄 CI/CD & Deploy na VPS
+- **Workflow:** `.github/workflows/quality-gate.yml`
+- **Quality Gate:** Roda em push/PR nas branches `develop` e `main` (Audit, Prisma generate, Testes Jest e Build NestJS).
+- **Deploy Automático:** Ao fazer merge/push na branch `main`, se o Quality Gate passar com sucesso, conecta via SSH na VPS com o usuário `deployer`, atualiza o código e executa `docker compose -f docker-compose.yml -f docker-compose.prod.yml --env-file .env.prod up -d --build`.
