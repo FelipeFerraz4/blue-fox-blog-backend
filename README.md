@@ -1,6 +1,7 @@
 # 🦊 Blue Fox Blog Backend (NestJS + Prisma)
 
 ![Quality Gate Main](https://img.shields.io/github/actions/workflow/status/FelipeFerraz4/blue-fox-blog-backend/quality-gate.yml?branch=main&label=Quality%20Gate%20Main&style=for-the-badge)
+![Quality Gate Develop](https://img.shields.io/github/actions/workflow/status/FelipeFerraz4/blue-fox-blog-backend/quality-gate.yml?branch=develop&label=Quality%20Gate%20Develop&style=for-the-badge)
 
 Enterprise REST API with Prisma ORM for the Blue Fox Blog ecosystem, replacing legacy Spring Boot. Features modular multi-schema database architecture, multi-tenancy isolation via `X-Blog-ID` (with cookie fallback), stateless OAuth2 Keycloak JWT authentication, structured Winston logging with daily rotation, and interactive OpenAPI documentation.
 
