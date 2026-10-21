@@ -19,6 +19,7 @@ describe('PostsController (HTTP)', () => {
     findById: jest.fn().mockResolvedValue({ id: 'p1' }),
     findRecommendedPosts: jest.fn().mockResolvedValue([]),
     findNextPosts: jest.fn().mockResolvedValue([]),
+    search: jest.fn().mockResolvedValue([]),
   };
   const UUID = '9f000004-28ab-4add-bbbb-112233445566';
 
@@ -49,6 +50,11 @@ describe('PostsController (HTTP)', () => {
   it('GET /v1/posts/status/:status is routed to the status listing, not to :id', async () => {
     await request(app.getHttpServer()).get('/v1/posts/status/ACTIVE').expect(200);
     expect(service.findAllByStatus).toHaveBeenCalledWith('ACTIVE', false);
+  });
+
+  it('GET /v1/posts/search is routed to search, not to :id', async () => {
+    await request(app.getHttpServer()).get('/v1/posts/search?q=betta&limit=5').expect(200);
+    expect(service.search).toHaveBeenCalledWith('betta', 5, false);
   });
 
   it('still routes a UUID to findById and a slug to findBySlug', async () => {

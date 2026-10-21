@@ -63,6 +63,24 @@ export class PostsController {
     return this.postsService.findLatestPosts(parsedLimit);
   }
 
+  @Get('search')
+  @Public()
+  @ApiOperation({
+    summary: 'Search posts by query text',
+    description: 'Searches published posts matching the query text in title or description.',
+  })
+  @ApiQuery({ name: 'q', required: true, example: 'betta', description: 'Search query' })
+  @ApiQuery({ name: 'limit', required: false, example: 5, description: 'Limit of posts to return' })
+  @ApiResponse({ status: 200, description: 'Matching posts list' })
+  search(
+    @Query('q') q: string,
+    @Query('limit') limit?: string,
+    @CurrentUser() user?: KeycloakUser | null,
+  ) {
+    const parsedLimit = limit ? parseInt(limit, 10) : 10;
+    return this.postsService.search(q, parsedLimit, canSeeUnpublished(user));
+  }
+
   @Get('most-relevance')
   @Public()
   @ApiOperation({ summary: 'Find most relevant posts', description: 'Find the most relevant posts up to a given limit' })

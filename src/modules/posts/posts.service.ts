@@ -203,6 +203,28 @@ export class PostsService {
     return posts.map((p) => this.mapPost(p));
   }
 
+  async search(query: string, limit = 10, includeUnpublished = false) {
+    if (!query || query.trim().length === 0) {
+      return [];
+    }
+    const blogId = TenantContext.getTenantId();
+    const trimmed = query.trim();
+    const posts = await this.prisma.post.findMany({
+      where: {
+        blogId,
+        ...this.visibleOnly(includeUnpublished),
+        OR: [
+          { title: { contains: trimmed, mode: 'insensitive' } },
+          { description: { contains: trimmed, mode: 'insensitive' } },
+        ],
+      },
+      include: this.postInclude,
+      orderBy: { publishedAt: 'desc' },
+      take: limit,
+    });
+    return posts.map((p) => this.mapPost(p));
+  }
+
   async findMostRelevant(limit: number) {
     const blogId = TenantContext.getTenantId();
     const posts = await this.prisma.post.findMany({
