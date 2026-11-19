@@ -29,6 +29,7 @@ const betta = sp({
   phMin: 6,
   phMax: 7.5,
   temperament: AquarismoTemperament.SEMI_AGGRESSIVE,
+  maleTemperament: AquarismoTemperament.AGGRESSIVE,
   longFinned: true,
   conspecificAggression: true,
 });
@@ -40,17 +41,50 @@ describe('evaluateCompatibility', () => {
     expect(r.reasons).toEqual([]);
   });
 
-  it('neon + betta: attention (semi-aggressive with a peaceful fish)', () => {
-    const r = evaluateCompatibility(neon, betta, { names: { neon: 'Neon', betta: 'Betta' } });
-    expect(r.level).toBe('ATTENTION');
-    expect(r.reasons.map((x) => x.code)).toEqual(['TEMPERAMENT_SEMI_AGGRESSIVE']);
-    expect(r.reasons[0].message).toContain('Betta é semiagressivo e pode perseguir Neon');
-  });
+  describe('betta: behaviour depends on sex', () => {
+    const names = { neon: 'Neon', betta: 'Betta' };
 
-  it('betta + betta: incompatible (males fight)', () => {
-    const r = evaluateCompatibility(betta, betta);
-    expect(r.level).toBe('INCOMPATIBLE');
-    expect(r.reasons.map((x) => x.code)).toEqual(['CONSPECIFIC_AGGRESSION']);
+    it('female betta + neon: attention (semi-aggressive with a peaceful fish)', () => {
+      const r = evaluateCompatibility(neon, betta, { names, sexB: 'female', labelB: 'Betta (fêmea)' });
+      expect(r.level).toBe('ATTENTION');
+      expect(r.reasons.map((x) => x.code)).toEqual(['TEMPERAMENT_SEMI_AGGRESSIVE']);
+      expect(r.reasons[0].message).toContain('Betta (fêmea) tem temperamento semiagressivo e pode perseguir Neon');
+    });
+
+    it('male betta + neon: incompatible (males are aggressive)', () => {
+      const r = evaluateCompatibility(neon, betta, { names, sexB: 'male' });
+      expect(r.level).toBe('INCOMPATIBLE');
+      expect(r.reasons.map((x) => x.code)).toEqual(['TEMPERAMENT_AGGRESSIVE']);
+    });
+
+    it('betta without sex is treated as male (the safe default)', () => {
+      expect(evaluateCompatibility(neon, betta).level).toBe('INCOMPATIBLE');
+    });
+
+    it('two males (or unknown): incompatible', () => {
+      const r = evaluateCompatibility(betta, betta, { names });
+      expect(r.level).toBe('INCOMPATIBLE');
+      expect(r.reasons.map((x) => x.code)).toEqual(['CONSPECIFIC_AGGRESSION']);
+      expect(r.reasons[0].message).toBe('Machos de Betta brigam entre si: mantenha só um macho.');
+    });
+
+    it('two females: attention (female group)', () => {
+      const r = evaluateCompatibility(betta, betta, { names, sexA: 'female', sexB: 'female' });
+      expect(r.level).toBe('ATTENTION');
+      expect(r.reasons.map((x) => x.code)).toEqual(['FEMALE_GROUP']);
+      expect(r.reasons[0].message).toContain('Fêmeas de Betta podem viver em grupo');
+    });
+
+    it('male + female: incompatible (the male attacks)', () => {
+      const r = evaluateCompatibility(betta, betta, { sexA: 'male', sexB: 'female', labelA: 'Betta (macho)', labelB: 'Betta (fêmea)' });
+      expect(r.level).toBe('INCOMPATIBLE');
+      expect(r.reasons[0]).toMatchObject({ code: 'TEMPERAMENT_AGGRESSIVE' });
+      expect(r.reasons[0].message).toContain('Betta (macho) tem temperamento agressivo e tende a atacar Betta (fêmea)');
+    });
+
+    it('sex does not change species without male temperament', () => {
+      expect(evaluateCompatibility(neon, cory, { sexA: 'male', sexB: 'female' }).level).toBe('COMPATIBLE');
+    });
   });
 
   it('same peaceful species is compatible with itself', () => {
@@ -108,7 +142,7 @@ describe('evaluateCompatibility', () => {
   });
 
   it('a manual COMPATIBLE override wins but keeps the computed warnings as notes', () => {
-    const r = evaluateCompatibility(neon, betta, { override: { override: AquarismoCompatibilityOverride.COMPATIBLE } });
+    const r = evaluateCompatibility(neon, betta, { sexB: 'female', override: { override: AquarismoCompatibilityOverride.COMPATIBLE } });
     expect(r.level).toBe('COMPATIBLE');
     expect(r.reasons.map((x) => x.code)).toEqual(['TEMPERAMENT_SEMI_AGGRESSIVE', 'MANUAL_COMPATIBLE']);
   });

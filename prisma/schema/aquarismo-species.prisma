@@ -60,15 +60,18 @@ model AquarismoSpecies {
 
   // Comportamento
   temperament           AquarismoTemperament
+  /// Temperamento do macho quando difere do da fêmea (ex.: Betta macho AGGRESSIVE, fêmea SEMI_AGGRESSIVE).
+  /// Nulo = igual a `temperament`. Sem o sexo informado, a regra de compatibilidade assume macho.
+  maleTemperament       AquarismoTemperament? @map("male_temperament")
   /// Belisca nadadeiras de outros peixes.
-  finNipper             Boolean              @default(false) @map("fin_nipper")
+  finNipper             Boolean               @default(false) @map("fin_nipper")
   /// Tem nadadeiras longas (alvo de beliscadores).
-  longFinned            Boolean              @default(false) @map("long_finned")
-  territorial           Boolean              @default(false)
-  /// Machos da mesma espécie brigam entre si (ex.: Betta).
-  conspecificAggression Boolean              @default(false) @map("conspecific_aggression")
+  longFinned            Boolean               @default(false) @map("long_finned")
+  territorial           Boolean               @default(false)
+  /// Machos da mesma espécie brigam entre si (ex.: Betta). Fêmeas juntas ficam em "atenção".
+  conspecificAggression Boolean               @default(false) @map("conspecific_aggression")
   layers                AquarismoSwimLayer[]
-  activity              AquarismoLevel       @default(MEDIUM)
+  activity              AquarismoLevel        @default(MEDIUM)
 
   // Cuidados
   difficulty  AquarismoDifficulty

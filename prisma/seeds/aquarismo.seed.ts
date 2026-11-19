@@ -239,7 +239,9 @@ const SPECIES = [
     phMax: 7.5,
     ghMin: 2,
     ghMax: 12,
+    // Fêmeas convivem com outros peixes (e em grupo) com atenção; machos são agressivos.
     temperament: AquarismoTemperament.SEMI_AGGRESSIVE,
+    maleTemperament: AquarismoTemperament.AGGRESSIVE,
     longFinned: true,
     territorial: true,
     conspecificAggression: true,
@@ -261,7 +263,7 @@ const SPECIES = [
         otherNames: ['Peixe-de-briga', 'Betta splendens'],
         region: 'Arrozais e pântanos do Sudeste Asiático',
         description:
-          'Labirintídeo de nadadeiras longas que respira ar da superfície. O macho é territorial e briga com outros machos, por isso vive sozinho. Precisa de água aquecida (26 a 28 °C é o ideal), tampa no aquário e corrente fraca.',
+          'Labirintídeo de nadadeiras longas que respira ar da superfície. O macho é agressivo: briga com outros machos, persegue a fêmea e não deve dividir o aquário com outros peixes. As fêmeas podem conviver com peixes pacíficos e em grupo de 5 ou mais, com atenção. Precisa de água aquecida (26 a 28 °C é o ideal), tampa no aquário e corrente fraca.',
         careNotes: 'Nada de "beteiras" de 1 a 2 litros: 15 a 20 litros é o ponto de partida. Abaixo de 40 litros, mantenha-o sozinho.',
       },
       {
@@ -270,7 +272,7 @@ const SPECIES = [
         otherNames: ['Siamese fighting fish', 'Betta splendens'],
         region: 'Rice paddies and swamps of Southeast Asia',
         description:
-          'A long-finned labyrinth fish that breathes air at the surface. Males are territorial and fight other males, so they live alone. It needs heated water (26 to 28 °C is ideal), a lid and a gentle current.',
+          'A long-finned labyrinth fish that breathes air at the surface. The male is aggressive: it fights other males, chases females and should not share the tank with other fish. Females can live with peaceful fish and in groups of 5 or more, with care. It needs heated water (26 to 28 °C is ideal), a lid and a gentle current.',
         careNotes: 'No 1–2 litre bowls: 15 to 20 litres is the starting point. Below 40 litres, keep it alone.',
       },
     ],

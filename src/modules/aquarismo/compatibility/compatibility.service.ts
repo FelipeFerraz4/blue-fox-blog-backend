@@ -3,11 +3,28 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { TenantContext } from '../../tenant/tenant.context';
 import { pickTranslation } from '../common/locale';
 import { SpeciesService } from '../species/species.service';
-import { CompatibilityLevel, CompatibilityResult, evaluateCompatibility, worstLevel } from './compatibility.rule';
+import { CompatibilityLevel, CompatibilityResult, evaluateCompatibility, FishSex, worstLevel } from './compatibility.rule';
 import { UpsertCompatibilityOverrideDto } from './dto/compatibility.dto';
 
 /** Par guardado sempre na mesma ordem (menor id primeiro). */
 const orderPair = (x: string, y: string): [string, string] => (x < y ? [x, y] : [y, x]);
+
+const SEX_LABEL: Record<string, Record<FishSex, string>> = {
+  'pt-BR': { male: 'macho', female: 'fêmea' },
+  en: { male: 'male', female: 'female' },
+};
+
+/** Entrada da checagem: "slug" ou "slug:male" / "slug:female". */
+interface Entry {
+  key: string;
+  slug: string;
+  sex?: FishSex;
+}
+
+function parseEntry(raw: string): Entry {
+  const [slug, sex] = raw.split(':');
+  return { key: raw, slug, sex: sex === 'male' || sex === 'female' ? sex : undefined };
+}
 
 @Injectable()
 export class CompatibilityService {
@@ -17,28 +34,44 @@ export class CompatibilityService {
   ) {}
 
   /**
-   * Avalia um grupo de espécies: todos os pares de espécies diferentes e, quando um slug aparece
-   * repetido (mais de um indivíduo), o par da espécie consigo mesma (ex.: dois machos de Betta).
+   * Avalia um grupo: todos os pares de entradas diferentes (espécies ou sexos diferentes) e, quando uma
+   * entrada aparece repetida (mais de um indivíduo), o par dela consigo mesma (ex.: duas fêmeas de Betta).
+   * Sem sexo informado, a regra assume macho.
    */
-  async check(slugs: string[], locale: string, canSeeUnpublished = false) {
-    const distinct = [...new Set(slugs)];
-    const repeated = new Set(slugs.filter((s, i) => slugs.indexOf(s) !== i));
-    if (distinct.length < 2 && repeated.size === 0) {
-      throw new BadRequestException('Provide at least two species, or repeat a slug to check individuals of the same species');
+  async check(rawEntries: string[], locale: string, canSeeUnpublished = false) {
+    const entries = [...new Map(rawEntries.map((r) => [r, parseEntry(r)])).values()];
+    const repeated = new Set(rawEntries.filter((r, i) => rawEntries.indexOf(r) !== i));
+    if (entries.length < 2 && repeated.size === 0) {
+      throw new BadRequestException('Provide at least two species, or repeat one to check individuals of the same species');
     }
 
-    const list = await this.species.findManyBySlugs(distinct, canSeeUnpublished);
+    const list = await this.species.findManyBySlugs([...new Set(entries.map((e) => e.slug))], canSeeUnpublished);
+    const bySlug = new Map(list.map((s) => [s.slug, s]));
     const names = Object.fromEntries(list.map((s) => [s.id, pickTranslation(s.translations, locale)?.commonName ?? s.scientificName]));
+    const sexLabels = SEX_LABEL[locale] ?? SEX_LABEL['pt-BR'];
+    const label = (e: Entry) => {
+      const name = names[bySlug.get(e.slug)!.id];
+      return e.sex ? `${name} (${sexLabels[e.sex]})` : name;
+    };
     const overrides = await this.loadOverrides(list.map((s) => s.id), locale);
 
     const pairs: { a: string; b: string; level: CompatibilityLevel; reasons: CompatibilityResult['reasons'] }[] = [];
-    for (let i = 0; i < list.length; i++) {
-      for (let j = i; j < list.length; j++) {
-        const [a, b] = [list[i], list[j]];
-        if (i === j && !repeated.has(a.slug)) continue;
-        const override = overrides.get(orderPair(a.id, b.id).join(':')) ?? null;
-        const result = evaluateCompatibility(a, b, { locale, names, override });
-        pairs.push({ a: a.slug, b: b.slug, ...result });
+    for (let i = 0; i < entries.length; i++) {
+      for (let j = i; j < entries.length; j++) {
+        const [ea, eb] = [entries[i], entries[j]];
+        if (i === j && !repeated.has(ea.key)) continue;
+        const [a, b] = [bySlug.get(ea.slug)!, bySlug.get(eb.slug)!];
+        const override = a.id === b.id ? null : (overrides.get(orderPair(a.id, b.id).join(':')) ?? null);
+        const result = evaluateCompatibility(a, b, {
+          locale,
+          names,
+          override,
+          sexA: ea.sex,
+          sexB: eb.sex,
+          labelA: label(ea),
+          labelB: label(eb),
+        });
+        pairs.push({ a: ea.key, b: eb.key, ...result });
       }
     }
 

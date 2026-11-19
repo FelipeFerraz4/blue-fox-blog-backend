@@ -11,6 +11,9 @@ import { DEFAULT_LOCALE } from '../common/locale';
 
 export type CompatibilityLevel = 'COMPATIBLE' | 'ATTENTION' | 'INCOMPATIBLE';
 
+/** Sexo do indivíduo. Sem informação, a regra assume macho (o caso mais restritivo). */
+export type FishSex = 'male' | 'female';
+
 /** Campos da espécie que a regra usa (subconjunto do modelo Prisma). */
 export interface CompatibilitySpecies {
   id: string;
@@ -22,6 +25,8 @@ export interface CompatibilitySpecies {
   phMin: number;
   phMax: number;
   temperament: AquarismoTemperament;
+  /** Temperamento do macho quando difere (ex.: Betta). Nulo = igual a `temperament`. */
+  maleTemperament?: AquarismoTemperament | null;
   finNipper: boolean;
   longFinned: boolean;
   conspecificAggression: boolean;
@@ -43,6 +48,7 @@ export type CompatibilityReasonCode =
   | 'FIN_NIPPING'
   | 'SIZE_DIFFERENCE'
   | 'CONSPECIFIC_AGGRESSION'
+  | 'FEMALE_GROUP'
   | 'MANUAL_AVOID'
   | 'MANUAL_COMPATIBLE';
 
@@ -94,11 +100,11 @@ const MESSAGES: Record<CompatibilityReasonCode, Record<string, string>> = {
     en: 'The shared pH range is narrow ({overlap}): it requires stable water.',
   },
   TEMPERAMENT_AGGRESSIVE: {
-    'pt-BR': '{a} é agressivo e tende a atacar {b}.',
+    'pt-BR': '{a} tem temperamento agressivo e tende a atacar {b}.',
     en: '{a} is aggressive and tends to attack {b}.',
   },
   TEMPERAMENT_SEMI_AGGRESSIVE: {
-    'pt-BR': '{a} é semiagressivo e pode perseguir {b}: ofereça espaço e esconderijos.',
+    'pt-BR': '{a} tem temperamento semiagressivo e pode perseguir {b}: ofereça espaço e esconderijos.',
     en: '{a} is semi-aggressive and may chase {b}: provide space and hiding places.',
   },
   FIN_NIPPING: {
@@ -112,6 +118,10 @@ const MESSAGES: Record<CompatibilityReasonCode, Record<string, string>> = {
   CONSPECIFIC_AGGRESSION: {
     'pt-BR': 'Machos de {a} brigam entre si: mantenha só um macho.',
     en: '{a} males fight each other: keep a single male.',
+  },
+  FEMALE_GROUP: {
+    'pt-BR': 'Fêmeas de {a} podem viver em grupo, com atenção: 5 ou mais, aquário amplo e bem plantado, e separe as que brigarem.',
+    en: '{a} females can live in a group, with care: 5 or more, a roomy, well-planted tank, and separate any that fight.',
   },
   MANUAL_AVOID: {
     'pt-BR': 'Combinação a evitar (exceção cadastrada).',
@@ -132,25 +142,54 @@ export function worstLevel(levels: CompatibilityLevel[]): CompatibilityLevel {
   return levels.reduce<CompatibilityLevel>((acc, l) => (RANK[l] > RANK[acc] ? l : acc), 'COMPATIBLE');
 }
 
+/** Temperamento efetivo do indivíduo: o do macho vale quando o sexo é macho ou não foi informado. */
+export function effectiveTemperament(s: CompatibilitySpecies, sex?: FishSex): AquarismoTemperament {
+  return sex === 'female' ? s.temperament : (s.maleTemperament ?? s.temperament);
+}
+
+/** Um lado do par: a espécie, o rótulo a exibir (ex.: "Betta (macho)") e o temperamento efetivo. */
+interface Side {
+  s: CompatibilitySpecies;
+  label: string;
+  temperament: AquarismoTemperament;
+}
+
 /**
- * Avalia o par (a, b). `names` traz o nome a exibir de cada espécie (nome popular no idioma pedido);
- * sem ele, usa o nome científico.
+ * Avalia o par (a, b).
+ * - `names`: nome a exibir por espécie (nome popular no idioma pedido); sem ele, o científico.
+ * - `labelA`/`labelB`: rótulo de cada indivíduo (ex.: "Betta (fêmea)"); sem ele, o nome da espécie.
+ * - `sexA`/`sexB`: só mudam algo em espécies com comportamento diferente por sexo
+ *   (`maleTemperament`, `conspecificAggression`); sem sexo, vale macho.
  */
 export function evaluateCompatibility(
   a: CompatibilitySpecies,
   b: CompatibilitySpecies,
-  options: { locale?: string; names?: Record<string, string>; override?: CompatibilityOverrideInput | null } = {},
+  options: {
+    locale?: string;
+    names?: Record<string, string>;
+    labelA?: string;
+    labelB?: string;
+    override?: CompatibilityOverrideInput | null;
+    sexA?: FishSex;
+    sexB?: FishSex;
+  } = {},
 ): CompatibilityResult {
   const locale = options.locale ?? DEFAULT_LOCALE;
-  const name = (s: CompatibilitySpecies) => options.names?.[s.id] ?? s.scientificName;
+  const speciesName = (s: CompatibilitySpecies) => options.names?.[s.id] ?? s.scientificName;
+  const A: Side = { s: a, label: options.labelA ?? speciesName(a), temperament: effectiveTemperament(a, options.sexA) };
+  const B: Side = { s: b, label: options.labelB ?? speciesName(b), temperament: effectiveTemperament(b, options.sexB) };
   const reasons: CompatibilityReason[] = [];
   const add = (level: CompatibilityLevel, code: CompatibilityReasonCode, vars: Record<string, string> = {}) =>
-    reasons.push({ level, code, message: message(code, locale, { a: name(a), b: name(b), ...vars }) });
+    reasons.push({ level, code, message: message(code, locale, { a: A.label, b: B.label, ...vars }) });
 
-  // Mesma espécie: só importa a briga entre machos (os parâmetros são idênticos).
+  // Mesma espécie: os parâmetros são idênticos; importa o comportamento entre indivíduos.
   if (a.id === b.id) {
-    if (a.conspecificAggression) add('INCOMPATIBLE', 'CONSPECIFIC_AGGRESSION');
-    return finish(reasons, options.override, locale, a, b, name);
+    const bothFemale = options.sexA === 'female' && options.sexB === 'female';
+    const bothMale = options.sexA !== 'female' && options.sexB !== 'female';
+    if (a.conspecificAggression && bothFemale) add('ATTENTION', 'FEMALE_GROUP', { a: speciesName(a) });
+    else if (a.conspecificAggression && bothMale) add('INCOMPATIBLE', 'CONSPECIFIC_AGGRESSION', { a: speciesName(a) });
+    else checkTemperament(A, B, add);
+    return finish(reasons, options.override, locale, A, B);
   }
 
   if (a.waterType !== b.waterType) add('INCOMPATIBLE', 'WATER_TYPE');
@@ -165,40 +204,50 @@ export function evaluateCompatibility(
   else if (phOverlap < COMPATIBILITY_THRESHOLDS.minPhOverlap)
     add('ATTENTION', 'PH_NARROW', { overlap: fmt(phOverlap) });
 
-  // Temperamento e comportamento são assimétricos: avalia nos dois sentidos.
+  checkTemperament(A, B, add);
+
+  // Comportamento é assimétrico: avalia nos dois sentidos.
   for (const [x, y] of [
-    [a, b],
-    [b, a],
+    [A, B],
+    [B, A],
   ] as const) {
-    const vars = { a: name(x), b: name(y) };
-    if (x.temperament === AquarismoTemperament.AGGRESSIVE && y.temperament !== AquarismoTemperament.AGGRESSIVE)
-      add('INCOMPATIBLE', 'TEMPERAMENT_AGGRESSIVE', vars);
-    else if (
-      x.temperament === AquarismoTemperament.SEMI_AGGRESSIVE &&
-      y.temperament === AquarismoTemperament.PEACEFUL
-    )
-      add('ATTENTION', 'TEMPERAMENT_SEMI_AGGRESSIVE', vars);
-
-    if (x.finNipper && y.longFinned) add('INCOMPATIBLE', 'FIN_NIPPING', vars);
-
-    if (x.adultSizeCm >= y.adultSizeCm * COMPATIBILITY_THRESHOLDS.sizeRatioAttention)
+    const vars = { a: x.label, b: y.label };
+    if (x.s.finNipper && y.s.longFinned) add('INCOMPATIBLE', 'FIN_NIPPING', vars);
+    if (x.s.adultSizeCm >= y.s.adultSizeCm * COMPATIBILITY_THRESHOLDS.sizeRatioAttention)
       add('ATTENTION', 'SIZE_DIFFERENCE', vars);
   }
 
-  return finish(reasons, options.override, locale, a, b, name);
+  return finish(reasons, options.override, locale, A, B);
+}
+
+/** Temperamento efetivo (já considerando o sexo), nos dois sentidos. */
+function checkTemperament(
+  A: Side,
+  B: Side,
+  add: (level: CompatibilityLevel, code: CompatibilityReasonCode, vars?: Record<string, string>) => void,
+) {
+  for (const [x, y] of [
+    [A, B],
+    [B, A],
+  ] as const) {
+    const vars = { a: x.label, b: y.label };
+    if (x.temperament === AquarismoTemperament.AGGRESSIVE && y.temperament !== AquarismoTemperament.AGGRESSIVE)
+      add('INCOMPATIBLE', 'TEMPERAMENT_AGGRESSIVE', vars);
+    else if (x.temperament === AquarismoTemperament.SEMI_AGGRESSIVE && y.temperament === AquarismoTemperament.PEACEFUL)
+      add('ATTENTION', 'TEMPERAMENT_SEMI_AGGRESSIVE', vars);
+  }
 }
 
 function finish(
   reasons: CompatibilityReason[],
   override: CompatibilityOverrideInput | null | undefined,
   locale: string,
-  a: CompatibilitySpecies,
-  b: CompatibilitySpecies,
-  name: (s: CompatibilitySpecies) => string,
+  A: Side,
+  B: Side,
 ): CompatibilityResult {
   if (override) {
     const code = override.override === AquarismoCompatibilityOverride.AVOID ? 'MANUAL_AVOID' : 'MANUAL_COMPATIBLE';
-    const base = message(code, locale, { a: name(a), b: name(b) });
+    const base = message(code, locale, { a: A.label, b: B.label });
     reasons.push({
       level: code === 'MANUAL_AVOID' ? 'INCOMPATIBLE' : 'COMPATIBLE',
       code,

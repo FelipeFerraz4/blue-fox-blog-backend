@@ -20,9 +20,10 @@ import { SUPPORTED_LOCALES } from '../../common/locale';
 export class CompatibilityQueryDto extends LocaleQueryDto {
   @ApiProperty({
     description:
-      'Comma-separated species slugs (2 to 20). Repeat a slug to say there is more than one individual ' +
-      '(e.g. betta-splendens,betta-splendens checks two males together).',
-    example: 'paracheirodon-innesi,corydoras-aeneus,betta-splendens',
+      'Comma-separated species slugs (up to 20), optionally with the sex: slug:male or slug:female. ' +
+      'Sex matters for species whose males behave differently (e.g. betta); without it, male is assumed. ' +
+      'Repeat an entry to say there is more than one individual (betta-splendens:female,betta-splendens:female).',
+    example: 'paracheirodon-innesi,corydoras-aeneus,betta-splendens:female',
     type: String,
   })
   @Transform(({ obj }) =>
@@ -34,7 +35,10 @@ export class CompatibilityQueryDto extends LocaleQueryDto {
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(20)
-  @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { each: true })
+  @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*(?::(?:male|female))?$/, {
+    each: true,
+    message: 'each species must be a slug, optionally followed by :male or :female',
+  })
   species: string[];
 }
 

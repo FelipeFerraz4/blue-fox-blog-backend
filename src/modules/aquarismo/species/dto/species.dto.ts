@@ -160,9 +160,17 @@ export class CreateSpeciesDto {
   @Max(50)
   ghMax?: number;
 
-  @ApiProperty({ enum: AquarismoTemperament })
+  @ApiProperty({ enum: AquarismoTemperament, description: 'Temperament (of the female, when it differs by sex)' })
   @IsEnum(AquarismoTemperament)
   temperament: AquarismoTemperament;
+
+  @ApiPropertyOptional({
+    enum: AquarismoTemperament,
+    description: 'Male temperament when it differs (e.g. betta: AGGRESSIVE). Null = same as temperament',
+  })
+  @IsOptional()
+  @IsEnum(AquarismoTemperament)
+  maleTemperament?: AquarismoTemperament;
 
   @ApiPropertyOptional({ default: false })
   @IsOptional()
