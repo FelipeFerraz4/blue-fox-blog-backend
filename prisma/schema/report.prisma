@@ -1,0 +1,41 @@
+// Relatos de erro enviados pelos leitores ("Encontrou um erro? Avise").
+// Fica fora do domínio Aquarismo porque vale para posts e para outros blogs: o alvo é identificado
+// por tipo + slug (sem FK), então serve para post, espécie, bioma, equipamento ou qualquer página.
+
+enum ReportTargetType {
+  POST
+  SPECIES
+  BIOME
+  EQUIPMENT
+  PAGE
+}
+
+enum ReportStatus {
+  NEW
+  IN_REVIEW
+  FIXED
+  DISMISSED
+}
+
+model Report {
+  id           String           @id @default(uuid()) @db.Uuid
+  blogId       String           @map("blog_id") @db.Uuid
+  targetType   ReportTargetType @map("target_type")
+  targetSlug   String           @map("target_slug") @db.VarChar(255)
+  /// Título do alvo no momento do relato (para a fila do painel, mesmo que o título mude depois).
+  targetTitle  String?          @map("target_title") @db.VarChar(255)
+  pageUrl      String?          @map("page_url") @db.VarChar(500)
+  message      String           @db.Text
+  suggestion   String?          @db.Text
+  source       String?          @db.VarChar(500)
+  /// Opcional, só para responder ao leitor (LGPD: ver política de privacidade).
+  email        String?          @db.VarChar(255)
+  status       ReportStatus     @default(NEW)
+  internalNote String?          @map("internal_note") @db.Text
+  resolvedAt   DateTime?        @map("resolved_at") @db.Timestamptz(6)
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([blogId, status, createdAt])
+  @@map("reports")
+}
