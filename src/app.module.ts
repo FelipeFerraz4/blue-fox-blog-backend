@@ -17,6 +17,7 @@ import { AuthorsModule } from './modules/authors/authors.module';
 import { PostsModule } from './modules/posts/posts.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { BlogsModule } from './modules/blogs/blogs.module';
+import { AquarismoModule } from './modules/aquarismo/aquarismo.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { BlogsModule } from './modules/blogs/blogs.module';
     PostsModule,
     CommentsModule,
     BlogsModule,
+    AquarismoModule,
   ],
   controllers: [],
   providers: [
