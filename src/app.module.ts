@@ -18,6 +18,8 @@ import { PostsModule } from './modules/posts/posts.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { BlogsModule } from './modules/blogs/blogs.module';
 import { AquarismoModule } from './modules/aquarismo/aquarismo.module';
+import { ReportsModule } from './modules/reports/reports.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -37,6 +39,8 @@ import { AquarismoModule } from './modules/aquarismo/aquarismo.module';
     CommentsModule,
     BlogsModule,
     AquarismoModule,
+    ReportsModule,
+    DashboardModule,
   ],
   controllers: [],
   providers: [
