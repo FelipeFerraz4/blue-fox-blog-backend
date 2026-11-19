@@ -3,6 +3,7 @@ import { seedBlogs } from './seeds/blogs.seed';
 import { seedAuthors } from './seeds/authors.seed';
 import { seedCategories } from './seeds/categories.seed';
 import { seedPosts } from './seeds/posts.seed';
+import { seedAquarismo } from './seeds/aquarismo.seed';
 
 const prisma = new PrismaClient();
 
@@ -22,6 +23,9 @@ async function main() {
 
     // 4. Posts padrão e recomendações M:N
     await seedPosts(prisma);
+
+    // 5. Catálogo do Aquarismo (espécies, biomas, equipamentos) — entra como REVIEWED, não público
+    await seedAquarismo(prisma);
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
     console.log(`✨ Todos os seeds do Blog foram aplicados com sucesso em ${elapsed}s!`);
