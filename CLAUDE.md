@@ -19,9 +19,10 @@ src/
     ├── auth/               # jwt.strategy, jwt-auth.guard, roles.guard, @Public, @Roles, @CurrentUser
     ├── tenant/             # TenantContext (AsyncLocalStorage) + TenantMiddleware
     ├── blogs/ authors/ categories/ posts/ comments/   # domínio (controller, service, module, dto/)
+    ├── aquarismo/          # catálogo do Aquarismo: species/ families/ biomes/ equipment/ compatibility/ + common/
     └── health/
-prisma/schema/*.prisma      # base, blog, author, category, post, comment (prismaSchemaFolder)
-prisma/seeds/*.ts + seed.ts # seeds de blogs, autores, categorias e posts
+prisma/schema/*.prisma      # base, blog, author, category, post, comment, aquarismo-* (prismaSchemaFolder)
+prisma/seeds/*.ts + seed.ts # seeds de blogs, autores, categorias, posts e catálogo do Aquarismo
 logs/YYYY-MM-DD/            # app.log, error.log, actions.log (gerado em runtime)
 ```
 
@@ -38,6 +39,12 @@ logs/YYYY-MM-DD/            # app.log, error.log, actions.log (gerado em runtime
 9. **Rascunhos nunca são públicos.** Visitante anônimo (ou usuário sem papel de conteúdo) só recebe posts `published = true` **e** `status = ACTIVE`; o resto responde 404 (por slug/id/recomendados) ou não é listado (`/posts`, `/posts/all`, `/posts/status/:status`). Quem tem `ROLE_ADMIN`, `ROLE_AQUARIUM_ADMIN` ou `ROLE_AQUARIUM_EDITOR` enxerga tudo nessas mesmas rotas: elas aceitam token opcional e o controller repassa `canSeeUnpublished(user)` (`modules/auth/content-visibility.ts`) ao serviço. Operações internas (criar, atualizar, status, remover) chamam `findById(id, true)`. Contagem de views ignora rascunhos. Categorias e autores seguem a regra com `canSeeInactive` (anônimo só vê `ACTIVE`).
 10. **Publicar um post**: `PUT /api/v1/posts/:id` com `{"published": true}` (papel de editor/admin); isso preenche `publishedAt`. O seed usa `update: {}`, então **nunca** altera posts já existentes no banco.
 11. **Rotas fixas antes de `:id`** no mesmo controller (`all`, `status/:status`...), senão o `ParseUUIDPipe` as captura e responde 400. Há testes HTTP em `posts.controller.spec.ts` cobrindo isso.
+
+12. **Domínio Aquarismo (`modules/aquarismo/`, rotas `v1/aquarismo/*`)**: isolado para poder virar microserviço. Tabelas `aquarismo_*`, arquivos `prisma/schema/aquarismo-*.prisma`; os modelos têm `blogId` (filtrado em toda query, regra 1) mas **sem FK** para `Blog`/`Post`. Não importe `posts`/`comments` aqui; ligação com artigos só por slug (`guideSlug`).
+    - **Traduções**: textos ficam em tabelas `*Translation` (uma linha por `locale`). Idiomas ativos em `common/locale.ts` (`SUPPORTED_LOCALES`, padrão `pt-BR`). A resposta usa `?lang=` ou `Accept-Language` (`@RequestLocale()`) e cai no pt-BR quando falta tradução. Criar uma entidade exige a tradução pt-BR.
+    - **Publicação**: `publication` (`DRAFT | REVIEWED | PUBLISHED`) é separado do `status` (soft delete). O público só vê `PUBLISHED` + `ACTIVE` (`visibilityWhere`/`isVisible` em `common/catalog.utils.ts`); editores e admins veem tudo menos `DELETED`.
+    - **Compatibilidade**: a regra fica **só** em `compatibility/compatibility.rule.ts` (função pura, limiares em `COMPATIBILITY_THRESHOLDS`) e responde `COMPATIBLE | ATTENTION | INCOMPATIBLE` com os motivos no idioma pedido. Exceções manuais por par em `aquarismo_species_compatibility`. `GET v1/aquarismo/compatibility?species=a,b,c` (repetir um slug = mais de um indivíduo da espécie).
+    - **Seed**: o deploy roda `prisma db seed`; o catálogo entra como `REVIEWED` (não público) e com `update: {}`. Um editor publica pela API depois da conferência dos dados.
 
 ## Algoritmos de posts
 
