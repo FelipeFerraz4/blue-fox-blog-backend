@@ -1,0 +1,90 @@
+// ============================================================================
+// Aquarismo: enums compartilhados por espécies, biomas e equipamentos.
+// Tudo do domínio Aquarismo usa o prefixo "aquarismo-" (arquivos) e "aquarismo_" (tabelas)
+// para poder virar um microserviço depois. Por isso os modelos guardam `blogId` (multi-tenant,
+// filtrado em toda query) mas NÃO têm relação/FK com `Blog`, `Post` ou `Comment`.
+// Textos visíveis ficam nas tabelas *Translation (uma linha por idioma, fallback pt-BR).
+// ============================================================================
+
+/// Tipo de água.
+enum AquarismoWaterType {
+  FRESH
+  BRACKISH
+  SALT
+}
+
+/// Situação editorial (separada do `Status`, que é o soft delete).
+/// O público só vê PUBLISHED + ACTIVE; editores e admins veem tudo.
+enum AquarismoPublication {
+  DRAFT
+  REVIEWED
+  PUBLISHED
+}
+
+enum AquarismoTemperament {
+  PEACEFUL
+  SEMI_AGGRESSIVE
+  AGGRESSIVE
+}
+
+/// Camada do aquário que a espécie ocupa.
+enum AquarismoSwimLayer {
+  SURFACE
+  MIDDLE
+  BOTTOM
+}
+
+enum AquarismoDifficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum AquarismoDiet {
+  HERBIVORE
+  OMNIVORE
+  CARNIVORE
+}
+
+/// Escala genérica de três níveis (atividade, correnteza, luz).
+enum AquarismoLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum AquarismoBreeding {
+  EASY
+  MODERATE
+  HARD
+}
+
+/// Tecnologia do aquário: low tech (sem CO₂, luz moderada) ou high tech.
+enum AquarismoTechLevel {
+  LOW
+  HIGH
+}
+
+enum AquarismoEquipmentType {
+  FILTER
+  HEATER
+  LIGHTING
+  CO2
+  PUMP
+  TEST_KIT
+  SUBSTRATE
+  OTHER
+}
+
+/// Unidade da regra de dimensionamento de um equipamento.
+enum AquarismoSizingUnit {
+  WATTS_PER_LITER
+  TURNOVER_PER_HOUR
+  NONE
+}
+
+/// Exceção manual à regra de compatibilidade calculada.
+enum AquarismoCompatibilityOverride {
+  COMPATIBLE
+  AVOID
+}

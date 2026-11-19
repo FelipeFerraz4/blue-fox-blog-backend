@@ -1,0 +1,45 @@
+// ============================================================================
+// Aquarismo: equipamentos (categorias genéricas, sem marca no início).
+// A regra de dimensionamento é estruturada: sizingMin..sizingMax na unidade sizingUnit
+// (ex.: aquecedor 0,5–1 W/L; filtro 5–10× o volume por hora).
+// ============================================================================
+
+model AquarismoEquipment {
+  id          String                 @id @default(uuid()) @db.Uuid
+  blogId      String                 @map("blog_id") @db.Uuid
+  slug        String                 @db.VarChar(160)
+  type        AquarismoEquipmentType
+  waterTypes  AquarismoWaterType[]   @map("water_types")
+  techLevel   AquarismoTechLevel     @default(LOW) @map("tech_level")
+  minVolumeL  Int?                   @map("min_volume_l")
+  maxVolumeL  Int?                   @map("max_volume_l")
+  sizingUnit  AquarismoSizingUnit    @default(NONE) @map("sizing_unit")
+  sizingMin   Float?                 @map("sizing_min")
+  sizingMax   Float?                 @map("sizing_max")
+  /// Slug do artigo-guia do Aquarismo (ligação só por slug, sem FK para posts).
+  guideSlug   String?                @map("guide_slug") @db.VarChar(255)
+  publication AquarismoPublication   @default(DRAFT)
+  status      Status                 @default(ACTIVE)
+  createdAt   DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime               @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  translations AquarismoEquipmentTranslation[]
+
+  @@unique([blogId, slug])
+  @@index([blogId, type, publication, status])
+  @@map("aquarismo_equipment")
+}
+
+model AquarismoEquipmentTranslation {
+  id          String  @id @default(uuid()) @db.Uuid
+  equipmentId String  @map("equipment_id") @db.Uuid
+  locale      String  @db.VarChar(10)
+  name        String  @db.VarChar(160)
+  description String  @db.Text
+  sizingNote  String? @map("sizing_note") @db.Text
+
+  equipment AquarismoEquipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+
+  @@unique([equipmentId, locale])
+  @@map("aquarismo_equipment_translations")
+}

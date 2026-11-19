@@ -1,0 +1,52 @@
+// ============================================================================
+// Aquarismo: biomas (ambientes naturais que inspiram o aquário).
+// ============================================================================
+
+model AquarismoBiome {
+  id        String             @id @default(uuid()) @db.Uuid
+  blogId    String             @map("blog_id") @db.Uuid
+  slug      String             @db.VarChar(160)
+  waterType AquarismoWaterType @default(FRESH) @map("water_type")
+
+  // Parâmetros típicos
+  tempMinC Float          @map("temp_min_c")
+  tempMaxC Float          @map("temp_max_c")
+  phMin    Float          @map("ph_min")
+  phMax    Float          @map("ph_max")
+  ghMin    Int?           @map("gh_min")
+  ghMax    Int?           @map("gh_max")
+  current  AquarismoLevel @default(LOW)
+  light    AquarismoLevel @default(MEDIUM)
+
+  techLevel   AquarismoTechLevel   @default(LOW) @map("tech_level")
+  imageUrl    String?              @map("image_url") @db.VarChar(255)
+  publication AquarismoPublication @default(DRAFT)
+  status      Status               @default(ACTIVE)
+  createdAt   DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  translations AquarismoBiomeTranslation[]
+  species      AquarismoSpeciesBiome[]
+
+  @@unique([blogId, slug])
+  @@index([blogId, publication, status])
+  @@map("aquarismo_biomes")
+}
+
+model AquarismoBiomeTranslation {
+  id          String  @id @default(uuid()) @db.Uuid
+  biomeId     String  @map("biome_id") @db.Uuid
+  locale      String  @db.VarChar(10)
+  name        String  @db.VarChar(160)
+  region      String? @db.VarChar(255)
+  description String  @db.Text
+  /// Substrato, hardscape e plantas característicos (texto livre).
+  substrate   String? @db.Text
+  hardscape   String? @db.Text
+  plants      String? @db.Text
+
+  biome AquarismoBiome @relation(fields: [biomeId], references: [id], onDelete: Cascade)
+
+  @@unique([biomeId, locale])
+  @@map("aquarismo_biome_translations")
+}

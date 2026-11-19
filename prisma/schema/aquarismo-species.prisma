@@ -1,0 +1,165 @@
+// ============================================================================
+// Aquarismo: famílias e espécies (catálogo de peixes).
+// Fatos técnicos são campos estruturados (a ferramenta filtra e cruza); o texto vai na tradução.
+// ============================================================================
+
+model AquarismoFamily {
+  id             String   @id @default(uuid()) @db.Uuid
+  blogId         String   @map("blog_id") @db.Uuid
+  /// Nome científico da família (ex.: Characidae). Não se traduz.
+  scientificName String   @map("scientific_name") @db.VarChar(120)
+  slug           String   @db.VarChar(120)
+  status         Status   @default(ACTIVE)
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  translations AquarismoFamilyTranslation[]
+  species      AquarismoSpecies[]
+
+  @@unique([blogId, slug])
+  @@unique([blogId, scientificName])
+  @@map("aquarismo_families")
+}
+
+model AquarismoFamilyTranslation {
+  id          String  @id @default(uuid()) @db.Uuid
+  familyId    String  @map("family_id") @db.Uuid
+  /// Código BCP 47 (pt-BR, en...). Novo idioma = novas linhas, sem migration.
+  locale      String  @db.VarChar(10)
+  name        String  @db.VarChar(120)
+  description String? @db.Text
+
+  family AquarismoFamily @relation(fields: [familyId], references: [id], onDelete: Cascade)
+
+  @@unique([familyId, locale])
+  @@map("aquarismo_family_translations")
+}
+
+model AquarismoSpecies {
+  id             String             @id @default(uuid()) @db.Uuid
+  blogId         String             @map("blog_id") @db.Uuid
+  slug           String             @db.VarChar(160)
+  /// Nome científico (ex.: Paracheirodon innesi). Não se traduz; chave única por blog.
+  scientificName String             @map("scientific_name") @db.VarChar(160)
+  familyId       String?            @map("family_id") @db.Uuid
+  waterType      AquarismoWaterType @default(FRESH) @map("water_type")
+
+  // Tamanho e espaço
+  adultSizeCm     Float @map("adult_size_cm")
+  minVolumeL      Int   @map("min_volume_l")
+  minTankLengthCm Int   @map("min_tank_length_cm")
+  minGroupSize    Int   @default(1) @map("min_group_size")
+
+  // Parâmetros da água (faixa tolerada)
+  tempMinC Float @map("temp_min_c")
+  tempMaxC Float @map("temp_max_c")
+  phMin    Float @map("ph_min")
+  phMax    Float @map("ph_max")
+  ghMin    Int?  @map("gh_min")
+  ghMax    Int?  @map("gh_max")
+
+  // Comportamento
+  temperament           AquarismoTemperament
+  /// Belisca nadadeiras de outros peixes.
+  finNipper             Boolean              @default(false) @map("fin_nipper")
+  /// Tem nadadeiras longas (alvo de beliscadores).
+  longFinned            Boolean              @default(false) @map("long_finned")
+  territorial           Boolean              @default(false)
+  /// Machos da mesma espécie brigam entre si (ex.: Betta).
+  conspecificAggression Boolean              @default(false) @map("conspecific_aggression")
+  layers                AquarismoSwimLayer[]
+  activity              AquarismoLevel       @default(MEDIUM)
+
+  // Cuidados
+  difficulty  AquarismoDifficulty
+  diet        AquarismoDiet
+  needsPlants Boolean             @default(false) @map("needs_plants")
+  needsHiding Boolean             @default(false) @map("needs_hiding")
+  eatsPlants  Boolean             @default(false) @map("eats_plants")
+  jumps       Boolean             @default(false)
+
+  // Criação
+  breeding                AquarismoBreeding @default(MODERATE)
+  suitableForBreedingSale Boolean           @default(false) @map("suitable_for_breeding_sale")
+
+  // Conteúdo
+  imageUrl       String?              @map("image_url") @db.VarChar(255)
+  /// URLs das fontes consultadas (FishBase, Seriously Fish...).
+  sources        String[]
+  lastReviewedAt DateTime?            @map("last_reviewed_at") @db.Timestamptz(6)
+  publication    AquarismoPublication @default(DRAFT)
+  status         Status               @default(ACTIVE)
+  createdAt      DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime             @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  family         AquarismoFamily?                @relation(fields: [familyId], references: [id], onDelete: SetNull)
+  translations   AquarismoSpeciesTranslation[]
+  biomes         AquarismoSpeciesBiome[]
+  compatibilityA AquarismoSpeciesCompatibility[] @relation("CompatibilityA")
+  compatibilityB AquarismoSpeciesCompatibility[] @relation("CompatibilityB")
+
+  @@unique([blogId, slug])
+  @@unique([blogId, scientificName])
+  @@index([blogId, publication, status])
+  @@map("aquarismo_species")
+}
+
+model AquarismoSpeciesTranslation {
+  id          String   @id @default(uuid()) @db.Uuid
+  speciesId   String   @map("species_id") @db.Uuid
+  locale      String   @db.VarChar(10)
+  commonName  String   @map("common_name") @db.VarChar(160)
+  otherNames  String[] @map("other_names")
+  /// Região de origem em texto (ex.: "Bacias dos rios Negro e Orinoco").
+  region      String?  @db.VarChar(255)
+  description String   @db.Text
+  careNotes   String?  @map("care_notes") @db.Text
+
+  species AquarismoSpecies @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+
+  @@unique([speciesId, locale])
+  @@map("aquarismo_species_translations")
+}
+
+/// Espécies de um bioma (M:N).
+model AquarismoSpeciesBiome {
+  speciesId String @map("species_id") @db.Uuid
+  biomeId   String @map("biome_id") @db.Uuid
+
+  species AquarismoSpecies @relation(fields: [speciesId], references: [id], onDelete: Cascade)
+  biome   AquarismoBiome   @relation(fields: [biomeId], references: [id], onDelete: Cascade)
+
+  @@id([speciesId, biomeId])
+  @@map("aquarismo_species_biomes")
+}
+
+/// Exceção manual à regra de compatibilidade (vale para o par nos dois sentidos).
+/// Guardado com speciesAId < speciesBId para não duplicar o par.
+model AquarismoSpeciesCompatibility {
+  id         String                         @id @default(uuid()) @db.Uuid
+  blogId     String                         @map("blog_id") @db.Uuid
+  speciesAId String                         @map("species_a_id") @db.Uuid
+  speciesBId String                         @map("species_b_id") @db.Uuid
+  override   AquarismoCompatibilityOverride
+  createdAt  DateTime                       @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime                       @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  speciesA     AquarismoSpecies                           @relation("CompatibilityA", fields: [speciesAId], references: [id], onDelete: Cascade)
+  speciesB     AquarismoSpecies                           @relation("CompatibilityB", fields: [speciesBId], references: [id], onDelete: Cascade)
+  translations AquarismoSpeciesCompatibilityTranslation[]
+
+  @@unique([speciesAId, speciesBId])
+  @@map("aquarismo_species_compatibility")
+}
+
+model AquarismoSpeciesCompatibilityTranslation {
+  id              String @id @default(uuid()) @db.Uuid
+  compatibilityId String @map("compatibility_id") @db.Uuid
+  locale          String @db.VarChar(10)
+  note            String @db.Text
+
+  compatibility AquarismoSpeciesCompatibility @relation(fields: [compatibilityId], references: [id], onDelete: Cascade)
+
+  @@unique([compatibilityId, locale])
+  @@map("aquarismo_species_compatibility_translations")
+}
