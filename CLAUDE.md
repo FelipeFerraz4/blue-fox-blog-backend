@@ -20,6 +20,8 @@ src/
     ├── tenant/             # TenantContext (AsyncLocalStorage) + TenantMiddleware
     ├── blogs/ authors/ categories/ posts/ comments/   # domínio (controller, service, module, dto/)
     ├── aquarismo/          # catálogo do Aquarismo: species/ families/ biomes/ equipment/ compatibility/ + common/
+    ├── reports/            # relatos de erro dos leitores (POST público com limite por IP; fila para editores)
+    ├── dashboard/          # GET v1/dashboard/stats: números do painel admin (posts, catálogo, relatos)
     └── health/
 prisma/schema/*.prisma      # base, blog, author, category, post, comment, aquarismo-* (prismaSchemaFolder)
 prisma/seeds/*.ts + seed.ts # seeds de blogs, autores, categorias, posts e catálogo do Aquarismo
@@ -45,6 +47,8 @@ logs/YYYY-MM-DD/            # app.log, error.log, actions.log (gerado em runtime
     - **Publicação**: `publication` (`DRAFT | REVIEWED | PUBLISHED`) é separado do `status` (soft delete). O público só vê `PUBLISHED` + `ACTIVE` (`visibilityWhere`/`isVisible` em `common/catalog.utils.ts`); editores e admins veem tudo menos `DELETED`.
     - **Compatibilidade**: a regra fica **só** em `compatibility/compatibility.rule.ts` (função pura, limiares em `COMPATIBILITY_THRESHOLDS`) e responde `COMPATIBLE | ATTENTION | INCOMPATIBLE` com os motivos no idioma pedido. Exceções manuais por par em `aquarismo_species_compatibility`. `GET v1/aquarismo/compatibility?species=a,b:female,c` (sufixo `:male`/`:female` opcional; repetir uma entrada = mais de um indivíduo). Espécies com comportamento por sexo usam `maleTemperament` + `conspecificAggression`: sem sexo informado, vale **macho** (o caso mais restritivo). Ex.: Betta macho é incompatível com outros peixes e com outros bettas; fêmeas convivem com atenção (inclusive em grupo).
     - **Seed**: o deploy roda `prisma db seed`; o catálogo entra como `REVIEWED` (não público) e com `update: {}`. Um editor publica pela API depois da conferência dos dados.
+
+13. **Relatos (`modules/reports/`)**: `POST v1/reports` é público e **privado** (nunca devolve dados; só editores listam). Proteções: limite de 5 relatos por IP a cada 10 min (`ReportRateLimiter`, em memória; o IP é o último item do `X-Forwarded-For`, posto pelo nginx) e campo-isca `website` (preenchido = responde sucesso sem gravar). O alvo é `targetType` + `targetSlug`, sem FK, para valer para posts, espécies, biomas, equipamentos e páginas. `PATCH v1/reports/:id` muda status/nota interna (`resolvedAt` acompanha); `DELETE` (admin) apaga de vez, para pedidos de exclusão de e-mail (LGPD).
 
 ## Algoritmos de posts
 
