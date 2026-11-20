@@ -1,0 +1,29 @@
+// Traduções de posts e categorias. O registro principal (posts/categories) é o idioma padrão (pt-BR);
+// aqui ficam os outros idiomas, uma linha por locale. Sem tradução, a API responde em pt-BR.
+
+model PostTranslation {
+  id          String @id @default(uuid()) @db.Uuid
+  postId      String @map("post_id") @db.Uuid
+  /// Código BCP 47 (en, es...). Novo idioma = novas linhas, sem migration.
+  locale      String @db.VarChar(10)
+  title       String @db.VarChar(255)
+  description String @db.VarChar(160)
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, locale])
+  @@map("post_translations")
+}
+
+model CategoryTranslation {
+  id          String  @id @default(uuid()) @db.Uuid
+  categoryId  String  @map("category_id") @db.Uuid
+  locale      String  @db.VarChar(10)
+  name        String  @db.VarChar(255)
+  description String? @db.Text
+
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, locale])
+  @@map("category_translations")
+}

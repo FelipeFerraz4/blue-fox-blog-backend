@@ -20,7 +20,8 @@ model Post {
   author   Author   @relation(fields: [authorId], references: [id], onDelete: Restrict)
   category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
-  comments Comment[]
+  comments     Comment[]
+  translations PostTranslation[]
 
   // Recomendações de posts (relação auto-referencial M:N via post_recommendations)
   recommendationsPost PostRecommendation[] @relation("SourcePost")

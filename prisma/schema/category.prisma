@@ -9,7 +9,8 @@ model Category {
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   blog  Blog   @relation(fields: [blogId], references: [id], onDelete: Restrict)
-  posts Post[]
+  posts        Post[]
+  translations CategoryTranslation[]
 
   @@map("categories")
 }
