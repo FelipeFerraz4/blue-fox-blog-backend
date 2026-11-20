@@ -50,6 +50,8 @@ logs/YYYY-MM-DD/            # app.log, error.log, actions.log (gerado em runtime
 
 13. **Relatos (`modules/reports/`)**: `POST v1/reports` é público e **privado** (nunca devolve dados; só editores listam). Proteções: limite de 5 relatos por IP a cada 10 min (`ReportRateLimiter`, em memória; o IP é o último item do `X-Forwarded-For`, posto pelo nginx) e campo-isca `website` (preenchido = responde sucesso sem gravar). O alvo é `targetType` + `targetSlug`, sem FK, para valer para posts, espécies, biomas, equipamentos e páginas. `PATCH v1/reports/:id` muda status/nota interna (`resolvedAt` acompanha); `DELETE` (admin) apaga de vez, para pedidos de exclusão de e-mail (LGPD).
 
+14. **Idiomas da API (`common/i18n/locale.ts`)**: `SUPPORTED_LOCALES` (pt-BR padrão, en) e `@RequestLocale()` (`?lang=` → `Accept-Language` → pt-BR) valem para posts e para o catálogo (o `aquarismo/common/locale.ts` só reexporta). **Posts e categorias**: o registro principal é pt-BR; outros idiomas ficam em `post_translations` (título/descrição) e `category_translations` (nome). As leituras de posts respondem no idioma pedido (com `locale` servido e `translations` para o painel); a busca procura também nas traduções; `POST`/`PUT` aceitam `translations: [{ locale, title, description }]`. O texto dos artigos em inglês fica no front.
+
 ## Algoritmos de posts
 
 - **Relevância**: `views*0.5 + likes*2 + comments*3 - diasDesdePublicacao*0.1` (`GET v1/posts/most-relevance`).
