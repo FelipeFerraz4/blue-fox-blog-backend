@@ -1,3 +1,6 @@
+import { Type } from 'class-transformer';
+import { ValidateNested } from 'class-validator';
+import { PostTranslationDto } from './post-translation.dto';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsNotEmpty,
@@ -102,4 +105,14 @@ export class CreatePostDto {
   @IsArray({ message: 'Recommended post IDs must be an array' })
   @IsUUID('all', { each: true, message: 'Each recommended post ID must be a valid UUID' })
   recommendedPostIds?: string[];
+
+  @ApiPropertyOptional({
+    type: [PostTranslationDto],
+    description: 'Title and description in other languages (the default language stays in title/description)',
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PostTranslationDto)
+  translations?: PostTranslationDto[];
 }

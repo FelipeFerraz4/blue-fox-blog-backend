@@ -7,7 +7,9 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { TenantContext } from '../tenant/tenant.context';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { Status } from '@prisma/client';
+import { Prisma, Status } from '@prisma/client';
+import { DEFAULT_LOCALE } from '../../common/i18n/locale';
+import { PostTranslationDto } from './dto/post-translation.dto';
 
 const WEIGHT_VIEWS = 0.5;
 const WEIGHT_LIKES = 2.0;
@@ -30,8 +32,9 @@ export class PostsService {
   }
 
   private postInclude = {
-    category: true,
+    category: { include: { translations: true } },
     author: true,
+    translations: true,
     recommendationsPost: {
       include: {
         recommendedPost: {
@@ -47,20 +50,46 @@ export class PostsService {
     },
   };
 
-  private mapPost(post: any) {
+  /**
+   * Resposta do post no idioma pedido: título, descrição e nome da categoria vêm da tradução quando
+   * existe (senão, do registro principal, em pt-BR). `locale` diz o idioma servido; `translations`
+   * traz as traduções cadastradas (para o painel editar).
+   */
+  private mapPost(post: any, locale: string = DEFAULT_LOCALE) {
     if (!post) return null;
     const recommendedPostIds = post.recommendationsPost
       ? post.recommendationsPost.map((r: any) => r.recommendedPostId)
       : [];
+    const t = locale !== DEFAULT_LOCALE ? post.translations?.find((x: any) => x.locale === locale) : null;
+    const categoryT =
+      locale !== DEFAULT_LOCALE ? post.category?.translations?.find((x: any) => x.locale === locale) : null;
 
-    const { recommendationsPost, _count, ...rest } = post;
+    const { recommendationsPost, _count, translations, ...rest } = post;
+    const category = post.category ? (({ translations: _ct, ...c }: any) => c)(post.category) : post.category;
     return {
       ...rest,
+      category,
+      title: t?.title ?? post.title,
+      description: t?.description ?? post.description,
+      locale: t ? locale : DEFAULT_LOCALE,
+      translations: (translations ?? []).map((x: any) => ({ locale: x.locale, title: x.title, description: x.description })),
       authorName: post.author?.name ?? '',
-      categoryName: post.category?.name ?? '',
+      categoryName: categoryT?.name ?? post.category?.name ?? '',
       commentsCount: _count ? _count.comments : 0,
       recommendedPostIds,
     };
+  }
+
+  /** Cria ou substitui as traduções enviadas (o idioma padrão fica no registro principal). */
+  private async saveTranslations(postId: string, translations?: PostTranslationDto[]) {
+    for (const t of translations ?? []) {
+      if (t.locale === DEFAULT_LOCALE) continue;
+      await this.prisma.postTranslation.upsert({
+        where: { postId_locale: { postId, locale: t.locale } },
+        create: { postId, locale: t.locale, title: t.title, description: t.description },
+        update: { title: t.title, description: t.description },
+      });
+    }
   }
 
   async create(dto: CreatePostDto) {
@@ -119,6 +148,8 @@ export class PostsService {
       });
     }
 
+    await this.saveTranslations(post.id, dto.translations);
+
     return this.findById(post.id, true);
   }
 
@@ -130,7 +161,7 @@ export class PostsService {
     return includeUnpublished ? {} : { published: true, status: Status.ACTIVE };
   }
 
-  async findById(id: string, includeUnpublished = false) {
+  async findById(id: string, includeUnpublished = false, locale: string = DEFAULT_LOCALE) {
     const blogId = TenantContext.getTenantId();
     const post = await this.prisma.post.findFirst({
       where: { id, blogId, ...this.visibleOnly(includeUnpublished) },
@@ -141,10 +172,10 @@ export class PostsService {
       throw new NotFoundException(`Post not found with id: ${id}`);
     }
 
-    return this.mapPost(post);
+    return this.mapPost(post, locale);
   }
 
-  async findBySlug(slug: string, includeUnpublished = false) {
+  async findBySlug(slug: string, includeUnpublished = false, locale: string = DEFAULT_LOCALE) {
     const blogId = TenantContext.getTenantId();
     const post = await this.prisma.post.findFirst({
       where: { slug, blogId, ...this.visibleOnly(includeUnpublished) },
@@ -155,30 +186,30 @@ export class PostsService {
       throw new NotFoundException(`Post not found with slug: ${slug}`);
     }
 
-    return this.mapPost(post);
+    return this.mapPost(post, locale);
   }
 
-  async findAllActive(includeUnpublished = false) {
+  async findAllActive(includeUnpublished = false, locale: string = DEFAULT_LOCALE) {
     const blogId = TenantContext.getTenantId();
     const posts = await this.prisma.post.findMany({
       where: { blogId, status: Status.ACTIVE, ...(includeUnpublished ? {} : { published: true }) },
       include: this.postInclude,
       orderBy: { createdAt: 'desc' },
     });
-    return posts.map((p) => this.mapPost(p));
+    return posts.map((p) => this.mapPost(p, locale));
   }
 
-  async findAll(includeUnpublished = false) {
+  async findAll(includeUnpublished = false, locale: string = DEFAULT_LOCALE) {
     const blogId = TenantContext.getTenantId();
     const posts = await this.prisma.post.findMany({
       where: { blogId, ...this.visibleOnly(includeUnpublished) },
       include: this.postInclude,
       orderBy: { createdAt: 'desc' },
     });
-    return posts.map((p) => this.mapPost(p));
+    return posts.map((p) => this.mapPost(p, locale));
   }
 
-  async findAllByStatus(status: Status, includeUnpublished = false) {
+  async findAllByStatus(status: Status, includeUnpublished = false, locale: string = DEFAULT_LOCALE) {
     // O público só enxerga posts ativos e publicados: qualquer outro status (inativo, removido...) não é listado.
     if (!includeUnpublished && status !== Status.ACTIVE) {
       return [];
@@ -189,10 +220,10 @@ export class PostsService {
       include: this.postInclude,
       orderBy: { createdAt: 'desc' },
     });
-    return posts.map((p) => this.mapPost(p));
+    return posts.map((p) => this.mapPost(p, locale));
   }
 
-  async findLatestPosts(limit: number) {
+  async findLatestPosts(limit: number, locale: string = DEFAULT_LOCALE) {
     const blogId = TenantContext.getTenantId();
     const posts = await this.prisma.post.findMany({
       where: { blogId, published: true, status: Status.ACTIVE },
@@ -200,10 +231,10 @@ export class PostsService {
       orderBy: { publishedAt: 'desc' },
       take: limit,
     });
-    return posts.map((p) => this.mapPost(p));
+    return posts.map((p) => this.mapPost(p, locale));
   }
 
-  async search(query: string, limit = 10, includeUnpublished = false) {
+  async search(query: string, limit = 10, includeUnpublished = false, locale: string = DEFAULT_LOCALE) {
     if (!query || query.trim().length === 0) {
       return [];
     }
@@ -213,19 +244,30 @@ export class PostsService {
       where: {
         blogId,
         ...this.visibleOnly(includeUnpublished),
+        // Procura no idioma padrão e nas traduções (quem busca em inglês acha pelo título em inglês).
         OR: [
           { title: { contains: trimmed, mode: 'insensitive' } },
           { description: { contains: trimmed, mode: 'insensitive' } },
-        ],
+          {
+            translations: {
+              some: {
+                OR: [
+                  { title: { contains: trimmed, mode: 'insensitive' } },
+                  { description: { contains: trimmed, mode: 'insensitive' } },
+                ],
+              },
+            },
+          },
+        ] satisfies Prisma.PostWhereInput[],
       },
       include: this.postInclude,
       orderBy: { publishedAt: 'desc' },
       take: limit,
     });
-    return posts.map((p) => this.mapPost(p));
+    return posts.map((p) => this.mapPost(p, locale));
   }
 
-  async findMostRelevant(limit: number) {
+  async findMostRelevant(limit: number, locale: string = DEFAULT_LOCALE) {
     const blogId = TenantContext.getTenantId();
     const posts = await this.prisma.post.findMany({
       where: { blogId, published: true, status: Status.ACTIVE },
@@ -248,14 +290,14 @@ export class PostsService {
         comments * WEIGHT_COMMENTS -
         daysSincePub * DECAY_DAYS_PENALTY;
 
-      return { post: this.mapPost(post), score };
+      return { post: this.mapPost(post, locale), score };
     });
 
     scoredPosts.sort((a, b) => b.score - a.score);
     return scoredPosts.slice(0, limit).map((s) => s.post);
   }
 
-  async findRecommendedPosts(slug: string, includeUnpublished = false) {
+  async findRecommendedPosts(slug: string, includeUnpublished = false, locale: string = DEFAULT_LOCALE) {
     const currentPost = await this.findBySlug(slug, includeUnpublished);
     if (!currentPost.recommendedPostIds || currentPost.recommendedPostIds.length === 0) {
       return [];
@@ -270,10 +312,10 @@ export class PostsService {
       include: this.postInclude,
     });
 
-    return posts.map((p) => this.mapPost(p));
+    return posts.map((p) => this.mapPost(p, locale));
   }
 
-  async findNextPosts(slug: string, limit: number = 6, includeUnpublished = false) {
+  async findNextPosts(slug: string, limit: number = 6, includeUnpublished = false, locale: string = DEFAULT_LOCALE) {
     const currentPost = await this.findBySlug(slug, includeUnpublished);
     const blogId = TenantContext.getTenantId();
     const currentPostId = currentPost.id;
@@ -288,7 +330,7 @@ export class PostsService {
       for (const p of posts) {
         if (!excludedIds.has(p.id) && !addedIds.has(p.id)) {
           addedIds.add(p.id);
-          resultPosts.push(this.mapPost(p));
+          resultPosts.push(this.mapPost(p, locale));
           if (resultPosts.length >= limit) return;
         }
       }
@@ -382,6 +424,8 @@ export class PostsService {
         });
       }
     }
+
+    await this.saveTranslations(id, dto.translations);
 
     return this.findById(id, true);
   }

@@ -201,4 +201,38 @@ describe('PostsService (Unit Tests)', () => {
       expect(mockPrisma.post.update).not.toHaveBeenCalled();
     });
   });
+
+  describe('Translations (?lang)', () => {
+    const row = {
+      id: 'p1',
+      blogId: mockBlogId,
+      title: 'Peixes Tetra',
+      description: 'Descrição em português',
+      category: { name: 'Cuidados com Peixes', translations: [{ locale: 'en', name: 'Fish Care' }] },
+      translations: [{ locale: 'en', title: 'Tetra Fish', description: 'English description' }],
+      _count: { comments: 0 },
+    };
+
+    beforeEach(() => jest.spyOn(TenantContext, 'getTenantId').mockReturnValue(mockBlogId));
+
+    it('returns the translated title, description and category name when they exist', async () => {
+      mockPrisma.post.findFirst.mockResolvedValue(row);
+      const post = await service.findBySlug('tetra', false, 'en');
+      expect(post).toMatchObject({ title: 'Tetra Fish', description: 'English description', categoryName: 'Fish Care', locale: 'en' });
+      expect(post?.category).not.toHaveProperty('translations');
+    });
+
+    it('falls back to the default language when there is no translation', async () => {
+      mockPrisma.post.findFirst.mockResolvedValue({ ...row, translations: [], category: { name: 'Cuidados com Peixes', translations: [] } });
+      const post = await service.findBySlug('tetra', false, 'en');
+      expect(post).toMatchObject({ title: 'Peixes Tetra', categoryName: 'Cuidados com Peixes', locale: 'pt-BR' });
+    });
+
+    it('keeps the default language for pt-BR and lists the translations for editors', async () => {
+      mockPrisma.post.findFirst.mockResolvedValue(row);
+      const post = await service.findBySlug('tetra');
+      expect(post).toMatchObject({ title: 'Peixes Tetra', locale: 'pt-BR' });
+      expect(post?.translations).toEqual([{ locale: 'en', title: 'Tetra Fish', description: 'English description' }]);
+    });
+  });
 });

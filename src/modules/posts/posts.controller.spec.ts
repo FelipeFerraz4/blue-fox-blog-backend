@@ -43,58 +43,66 @@ describe('PostsController (HTTP)', () => {
 
   it('GET /v1/posts/all is reachable (it used to be captured by :id and answered 400)', async () => {
     await request(app.getHttpServer()).get('/v1/posts/all').expect(200);
-    expect(service.findAll).toHaveBeenCalledWith(false);
+    expect(service.findAll).toHaveBeenCalledWith(false, 'pt-BR');
     expect(service.findById).not.toHaveBeenCalled();
   });
 
   it('GET /v1/posts/status/:status is routed to the status listing, not to :id', async () => {
     await request(app.getHttpServer()).get('/v1/posts/status/ACTIVE').expect(200);
-    expect(service.findAllByStatus).toHaveBeenCalledWith('ACTIVE', false);
+    expect(service.findAllByStatus).toHaveBeenCalledWith('ACTIVE', false, 'pt-BR');
   });
 
   it('GET /v1/posts/search is routed to search, not to :id', async () => {
     await request(app.getHttpServer()).get('/v1/posts/search?q=betta&limit=5').expect(200);
-    expect(service.search).toHaveBeenCalledWith('betta', 5, false);
+    expect(service.search).toHaveBeenCalledWith('betta', 5, false, 'pt-BR');
   });
 
   it('still routes a UUID to findById and a slug to findBySlug', async () => {
     await request(app.getHttpServer()).get(`/v1/posts/${UUID}`).expect(200);
-    expect(service.findById).toHaveBeenCalledWith(UUID, false);
+    expect(service.findById).toHaveBeenCalledWith(UUID, false, 'pt-BR');
 
     await request(app.getHttpServer()).get('/v1/posts/slug/tetra-fish-guide').expect(200);
-    expect(service.findBySlug).toHaveBeenCalledWith('tetra-fish-guide', false);
+    expect(service.findBySlug).toHaveBeenCalledWith('tetra-fish-guide', false, 'pt-BR');
   });
 
   it('anonymous visitors and users without a content role never get drafts', async () => {
     await request(app.getHttpServer()).get('/v1/posts').expect(200);
-    expect(service.findAllActive).toHaveBeenLastCalledWith(false);
+    expect(service.findAllActive).toHaveBeenLastCalledWith(false, 'pt-BR');
 
     await request(app.getHttpServer()).get('/v1/posts/slug/x').set('x-test-roles', 'ROLE_USER,ROLE_FINANCE_ADMIN').expect(200);
-    expect(service.findBySlug).toHaveBeenLastCalledWith('x', false);
+    expect(service.findBySlug).toHaveBeenLastCalledWith('x', false, 'pt-BR');
   });
 
   it('editors and admins get drafts on every public read route', async () => {
     const editor = { 'x-test-roles': 'ROLE_AQUARIUM_EDITOR' };
 
     await request(app.getHttpServer()).get('/v1/posts').set(editor).expect(200);
-    expect(service.findAllActive).toHaveBeenLastCalledWith(true);
+    expect(service.findAllActive).toHaveBeenLastCalledWith(true, 'pt-BR');
 
     await request(app.getHttpServer()).get('/v1/posts/all').set(editor).expect(200);
-    expect(service.findAll).toHaveBeenLastCalledWith(true);
+    expect(service.findAll).toHaveBeenLastCalledWith(true, 'pt-BR');
 
     await request(app.getHttpServer()).get('/v1/posts/status/DELETED').set(editor).expect(200);
-    expect(service.findAllByStatus).toHaveBeenLastCalledWith('DELETED', true);
+    expect(service.findAllByStatus).toHaveBeenLastCalledWith('DELETED', true, 'pt-BR');
 
     await request(app.getHttpServer()).get('/v1/posts/slug/tetra-fish-guide').set(editor).expect(200);
-    expect(service.findBySlug).toHaveBeenLastCalledWith('tetra-fish-guide', true);
+    expect(service.findBySlug).toHaveBeenLastCalledWith('tetra-fish-guide', true, 'pt-BR');
 
     await request(app.getHttpServer()).get(`/v1/posts/${UUID}`).set({ 'x-test-roles': 'ROLE_ADMIN' }).expect(200);
-    expect(service.findById).toHaveBeenLastCalledWith(UUID, true);
+    expect(service.findById).toHaveBeenLastCalledWith(UUID, true, 'pt-BR');
 
     await request(app.getHttpServer()).get('/v1/posts/recommended-posts/tetra-fish-guide').set(editor).expect(200);
-    expect(service.findRecommendedPosts).toHaveBeenLastCalledWith('tetra-fish-guide', true);
+    expect(service.findRecommendedPosts).toHaveBeenLastCalledWith('tetra-fish-guide', true, 'pt-BR');
 
     await request(app.getHttpServer()).get('/v1/posts/next-posts/tetra-fish-guide').set(editor).expect(200);
-    expect(service.findNextPosts).toHaveBeenLastCalledWith('tetra-fish-guide', 6, true);
+    expect(service.findNextPosts).toHaveBeenLastCalledWith('tetra-fish-guide', 6, true, 'pt-BR');
+  });
+
+  it('passes the requested language (?lang or Accept-Language) to the service', async () => {
+    await request(app.getHttpServer()).get('/v1/posts/slug/tetra-fish-guide?lang=en').expect(200);
+    expect(service.findBySlug).toHaveBeenLastCalledWith('tetra-fish-guide', false, 'en');
+
+    await request(app.getHttpServer()).get('/v1/posts').set('accept-language', 'en-US,en;q=0.9').expect(200);
+    expect(service.findAllActive).toHaveBeenLastCalledWith(false, 'en');
   });
 });

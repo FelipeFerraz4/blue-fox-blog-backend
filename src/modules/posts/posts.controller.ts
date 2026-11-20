@@ -31,6 +31,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { KeycloakUser } from '../auth/jwt.strategy';
 import { canSeeUnpublished } from '../auth/content-visibility';
 import { Status } from '@prisma/client';
+import { RequestLocale, SUPPORTED_LOCALES, SupportedLocale } from '../../common/i18n/locale';
 
 @ApiTags('Post')
 @Controller('v1/posts')
@@ -39,11 +40,12 @@ export class PostsController {
 
   @Get('last-post')
   @Public()
+  @ApiQuery({ name: 'lang', required: false, enum: SUPPORTED_LOCALES, description: 'Response language (falls back to Accept-Language, then pt-BR)' })
   @ApiOperation({ summary: 'Get last published post', description: 'Retrieves the most recently published post' })
   @ApiResponse({ status: 200, description: 'Last post of the blog' })
   @ApiResponse({ status: 404, description: 'No posts found' })
-  async getLastPost() {
-    const posts = await this.postsService.findLatestPosts(1);
+  async getLastPost(@RequestLocale() locale: SupportedLocale) {
+    const posts = await this.postsService.findLatestPosts(1, locale);
     if (!posts || posts.length === 0) {
       return null;
     }
@@ -52,19 +54,21 @@ export class PostsController {
 
   @Get('latest')
   @Public()
+  @ApiQuery({ name: 'lang', required: false, enum: SUPPORTED_LOCALES, description: 'Response language (falls back to Accept-Language, then pt-BR)' })
   @ApiOperation({
     summary: 'Get latest published posts',
     description: 'Retrieves a list of the most recently published posts, up to an optional limit.',
   })
   @ApiQuery({ name: 'limit', required: false, example: 5, description: 'Limit of posts to return' })
   @ApiResponse({ status: 200, description: 'Latest posts of the blog' })
-  getLatestPosts(@Query('limit') limit?: string) {
+  getLatestPosts(@RequestLocale() locale: SupportedLocale, @Query('limit') limit?: string) {
     const parsedLimit = limit ? parseInt(limit, 10) : 10;
-    return this.postsService.findLatestPosts(parsedLimit);
+    return this.postsService.findLatestPosts(parsedLimit, locale);
   }
 
   @Get('search')
   @Public()
+  @ApiQuery({ name: 'lang', required: false, enum: SUPPORTED_LOCALES, description: 'Response language (falls back to Accept-Language, then pt-BR)' })
   @ApiOperation({
     summary: 'Search posts by query text',
     description: 'Searches published posts matching the query text in title or description.',
@@ -76,19 +80,21 @@ export class PostsController {
     @Query('q') q: string,
     @Query('limit') limit?: string,
     @CurrentUser() user?: KeycloakUser | null,
+    @RequestLocale() locale?: SupportedLocale,
   ) {
     const parsedLimit = limit ? parseInt(limit, 10) : 10;
-    return this.postsService.search(q, parsedLimit, canSeeUnpublished(user));
+    return this.postsService.search(q, parsedLimit, canSeeUnpublished(user), locale);
   }
 
   @Get('most-relevance')
   @Public()
+  @ApiQuery({ name: 'lang', required: false, enum: SUPPORTED_LOCALES, description: 'Response language (falls back to Accept-Language, then pt-BR)' })
   @ApiOperation({ summary: 'Find most relevant posts', description: 'Find the most relevant posts up to a given limit' })
   @ApiQuery({ name: 'limit', required: false, example: 5, description: 'Limit of posts to return' })
   @ApiResponse({ status: 200, description: 'Relevant posts found' })
-  getMostRelevance(@Query('limit') limit?: string) {
+  getMostRelevance(@RequestLocale() locale: SupportedLocale, @Query('limit') limit?: string) {
     const parsedLimit = limit ? parseInt(limit, 10) : 10;
-    return this.postsService.findMostRelevant(parsedLimit);
+    return this.postsService.findMostRelevant(parsedLimit, locale);
   }
 
   @Post()
@@ -105,30 +111,33 @@ export class PostsController {
 
   @Get('recommended-posts/:slug')
   @Public()
+  @ApiQuery({ name: 'lang', required: false, enum: SUPPORTED_LOCALES, description: 'Response language (falls back to Accept-Language, then pt-BR)' })
   @ApiOperation({
     summary: 'Get recommended posts by slug',
     description: 'Retrieves the detailed list of recommended posts associated with the post identified by the given slug.',
   })
   @ApiParam({ name: 'slug', description: 'Post slug' })
   @ApiResponse({ status: 200, description: 'Post recommendations found' })
-  getRecommendedPosts(@Param('slug') slug: string, @CurrentUser() user: KeycloakUser | null) {
-    return this.postsService.findRecommendedPosts(slug, canSeeUnpublished(user));
+  getRecommendedPosts(@Param('slug') slug: string, @CurrentUser() user: KeycloakUser | null, @RequestLocale() locale: SupportedLocale) {
+    return this.postsService.findRecommendedPosts(slug, canSeeUnpublished(user), locale);
   }
 
   @Get('next-posts/:slug')
   @Public()
+  @ApiQuery({ name: 'lang', required: false, enum: SUPPORTED_LOCALES, description: 'Response language (falls back to Accept-Language, then pt-BR)' })
   @ApiOperation({
     summary: 'Find next sequential posts',
     description: 'Find up to 6 unique posts related dynamically by category, chronology, and fallback rules',
   })
   @ApiParam({ name: 'slug', description: 'Current post slug' })
   @ApiResponse({ status: 200, description: 'Sequential posts found' })
-  getNextPosts(@Param('slug') slug: string, @CurrentUser() user: KeycloakUser | null) {
-    return this.postsService.findNextPosts(slug, 6, canSeeUnpublished(user));
+  getNextPosts(@Param('slug') slug: string, @CurrentUser() user: KeycloakUser | null, @RequestLocale() locale: SupportedLocale) {
+    return this.postsService.findNextPosts(slug, 6, canSeeUnpublished(user), locale);
   }
 
   @Get('slug/:slug')
   @Public()
+  @ApiQuery({ name: 'lang', required: false, enum: SUPPORTED_LOCALES, description: 'Response language (falls back to Accept-Language, then pt-BR)' })
   @ApiOperation({
     summary: 'Find post by slug',
     description: 'Find a post by its slug. Drafts (unpublished posts) are only returned to editors and admins; everyone else gets 404.',
@@ -136,46 +145,50 @@ export class PostsController {
   @ApiParam({ name: 'slug', description: 'Post slug' })
   @ApiResponse({ status: 200, description: 'Post found' })
   @ApiResponse({ status: 404, description: 'Post not found' })
-  findBySlug(@Param('slug') slug: string, @CurrentUser() user: KeycloakUser | null) {
-    return this.postsService.findBySlug(slug, canSeeUnpublished(user));
+  findBySlug(@Param('slug') slug: string, @CurrentUser() user: KeycloakUser | null, @RequestLocale() locale: SupportedLocale) {
+    return this.postsService.findBySlug(slug, canSeeUnpublished(user), locale);
   }
 
   @Get('all')
   @Public()
+  @ApiQuery({ name: 'lang', required: false, enum: SUPPORTED_LOCALES, description: 'Response language (falls back to Accept-Language, then pt-BR)' })
   @ApiOperation({ summary: 'Find all posts', description: 'Find all posts' })
   @ApiResponse({ status: 200, description: 'Posts found' })
-  findAll(@CurrentUser() user: KeycloakUser | null) {
-    return this.postsService.findAll(canSeeUnpublished(user));
+  findAll(@CurrentUser() user: KeycloakUser | null, @RequestLocale() locale: SupportedLocale) {
+    return this.postsService.findAll(canSeeUnpublished(user), locale);
   }
 
   @Get('status/:status')
   @Public()
+  @ApiQuery({ name: 'lang', required: false, enum: SUPPORTED_LOCALES, description: 'Response language (falls back to Accept-Language, then pt-BR)' })
   @ApiOperation({ summary: 'Find posts by status', description: 'Find posts by their status' })
   @ApiParam({ name: 'status', enum: Status, description: 'Post status' })
   @ApiResponse({ status: 200, description: 'Posts found' })
-  findByStatus(@Param('status') status: Status, @CurrentUser() user: KeycloakUser | null) {
-    return this.postsService.findAllByStatus(status, canSeeUnpublished(user));
+  findByStatus(@Param('status') status: Status, @CurrentUser() user: KeycloakUser | null, @RequestLocale() locale: SupportedLocale) {
+    return this.postsService.findAllByStatus(status, canSeeUnpublished(user), locale);
   }
 
   @Get(':id')
   @Public()
+  @ApiQuery({ name: 'lang', required: false, enum: SUPPORTED_LOCALES, description: 'Response language (falls back to Accept-Language, then pt-BR)' })
   @ApiOperation({ summary: 'Find post by id', description: 'Find a post by its id' })
   @ApiParam({ name: 'id', description: 'Post id (UUID)' })
   @ApiResponse({ status: 200, description: 'Post found' })
   @ApiResponse({ status: 404, description: 'Post not found' })
-  findById(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: KeycloakUser | null) {
-    return this.postsService.findById(id, canSeeUnpublished(user));
+  findById(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: KeycloakUser | null, @RequestLocale() locale: SupportedLocale) {
+    return this.postsService.findById(id, canSeeUnpublished(user), locale);
   }
 
   @Get()
   @Public()
+  @ApiQuery({ name: 'lang', required: false, enum: SUPPORTED_LOCALES, description: 'Response language (falls back to Accept-Language, then pt-BR)' })
   @ApiOperation({
     summary: 'Find all active posts',
     description: 'Find all active posts. Drafts are only included for editors and admins.',
   })
   @ApiResponse({ status: 200, description: 'Posts found' })
-  findAllActive(@CurrentUser() user: KeycloakUser | null) {
-    return this.postsService.findAllActive(canSeeUnpublished(user));
+  findAllActive(@CurrentUser() user: KeycloakUser | null, @RequestLocale() locale: SupportedLocale) {
+    return this.postsService.findAllActive(canSeeUnpublished(user), locale);
   }
 
   @Put(':id')

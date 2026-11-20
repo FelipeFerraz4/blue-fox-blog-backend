@@ -1,7 +1,8 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
 /**
- * Idiomas ativos do catálogo. Fonte única no backend (o front tem a sua `SUPPORTED_LOCALES`):
+ * Idiomas ativos da API (posts, categorias e catálogo do Aquarismo). Fonte única no backend
+ * (o front tem a sua `SUPPORTED_LOCALES`):
  * para ativar um idioma, inclua-o aqui e cadastre as linhas de tradução — sem migration.
  * O primeiro é o padrão e o fallback quando falta tradução.
  */
